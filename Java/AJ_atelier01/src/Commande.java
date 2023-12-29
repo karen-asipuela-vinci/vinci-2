@@ -35,7 +35,7 @@ public class Commande implements Iterable<LigneDeCommande>{
 
     @Override
     public Iterator<LigneDeCommande> iterator() {
-        return null;
+        return lignesCommande.iterator();
     }
 
     public boolean ajouter(Pizza pizza, int quantite ){
