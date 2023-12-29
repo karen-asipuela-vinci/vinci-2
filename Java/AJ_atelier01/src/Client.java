@@ -55,13 +55,17 @@ public class Client implements Iterable<Commande>{
     public Commande getCommandeEnCours() {
         return commandeEnCours;
     }
+
     public boolean enregistrer(Commande commande) {
+        //echoue si commande déjà en cours
+        //ou si la commande n'est pas du meme client
+        //if -> vérifie qu'il n'y a pas de commandes en cours et que le client est bien le meme
+        //optionnel : la même commande ne peut pas être passée 2x
         if (commandeEnCours == null && commande.getClient() == this && !historiqueCommande.contains(commande)) {
             commandeEnCours = commande;
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
 
     public boolean cloturerCommandeEnCours(){
