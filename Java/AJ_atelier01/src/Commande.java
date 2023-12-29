@@ -1,8 +1,11 @@
+import util.Util;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Objects;
 
 public class Commande implements Iterable<LigneDeCommande>{
     private static int numeroSuivant = 1;
@@ -38,7 +41,11 @@ public class Commande implements Iterable<LigneDeCommande>{
         return lignesCommande.iterator();
     }
 
+    //Méthodes ajouter : échouent si la commande n'est pas la commande en cours du client
     public boolean ajouter(Pizza pizza, int quantite ){
+        Util.checkObject(pizza);
+        Util.checkStrictlyPositive(quantite);
+        if(client.getCommandeEnCours() != this) return false;
         for (LigneDeCommande ligneCommande :
                 lignesCommande) {
             if (ligneCommande.getPizza().equals(pizza)){
@@ -46,13 +53,13 @@ public class Commande implements Iterable<LigneDeCommande>{
                 return true;
             }
         }
-        lignesCommande.add(new LigneDeCommande(pizza, quantite));
-        return true;
+        return lignesCommande.add(new LigneDeCommande(pizza, quantite));
     }
-
+    //comme fait appel à la première méthode, pas besoin de vérifier 2x
     public boolean ajouter(Pizza pizza){
         return ajouter(pizza, 1);
     }
+
     public double calculerMontantTotal(){
         double calcul = 0;
         for (LigneDeCommande ligneCommande :
@@ -64,7 +71,12 @@ public class Commande implements Iterable<LigneDeCommande>{
 
 
     public String detailler() {
-        return lignesCommande.toString() ;
+        String lignes = "";
+        for (LigneDeCommande l : lignesCommande){
+            lignes += l.toString() + "\n";
+        }
+        if (lignes.equals("")) return lignes;
+        return lignes.substring(0,lignes.length()-1);
     }
 
     public String toString() {
@@ -75,26 +87,31 @@ public class Commande implements Iterable<LigneDeCommande>{
         return "Commande n° " + numero + encours + " du " + client + "\ndate : " + formater.format(date);
     }
     public boolean retirer(Pizza pizza, int quantite){
+        Util.checkObject(pizza);
+        Util.checkStrictlyPositive(quantite);
+        if(client.getCommandeEnCours() != this) return false;
         for (LigneDeCommande ligneDeCommande :
              lignesCommande ) {
             if(ligneDeCommande.getPizza().equals(pizza)){
                 if(ligneDeCommande.getQuantite() < quantite) return false;
                 if(ligneDeCommande.getQuantite()==quantite) {
                     lignesCommande.remove(ligneDeCommande);
-                    return true;
                 } else {
                     ligneDeCommande.setQuantite(ligneDeCommande.getQuantite() - quantite);
-                    return true;
                 }
+                return true;
             }
         }
         return false;
     }
 
     public boolean retirer(Pizza pizza){
-        return retirer(pizza, 1);
+        return this.retirer(pizza, 1);
     }
+
     public boolean supprimer(Pizza pizza) {
+        Util.checkObject(pizza);
+        if(client.getCommandeEnCours() != this) return false;
         for (LigneDeCommande ligneDeCommande :
                 lignesCommande) {
             if (ligneDeCommande.getPizza().equals(pizza)) {
@@ -105,4 +122,17 @@ public class Commande implements Iterable<LigneDeCommande>{
         return false;
     }
 
+    
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Commande commande = (Commande) o;
+        return numero == commande.numero;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(numero);
+    }
 }
