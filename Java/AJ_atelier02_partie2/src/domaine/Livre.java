@@ -5,10 +5,11 @@ import util.Util;
 import java.util.*;
 
 public class Livre {
-    private Map<Plat.Type, SortedSet<Plat>> livre;
+    private HashMap<Plat.Type, SortedSet<Plat>> plats;
+    //pour challenge : changer à SortedMap
 
     public Livre() {
-        livre = new HashMap<>();
+        plats = new HashMap<>();
     }
 
     /**
@@ -17,40 +18,48 @@ public class Livre {
      * @param plat le plat à ajouter
      * @return true si le plat a été ajouté, false sinon
      */
-
     public boolean ajouterPlat(Plat plat){
         Util.checkObject(plat);
-        SortedSet<Plat> sousLivre = livre.get(plat.getType());
+        SortedSet<Plat> sousLivre = this.plats.get(plat.getType());
         if(sousLivre == null){
-            Comparator<Plat> comparator = Comparator.comparing(Plat::getNiveauDeDifficulte).thenComparing(Plat::getNom);
-            sousLivre = new TreeSet<>(comparator);
-            livre.put(plat.getType(), sousLivre);
+            //on créé le sousLivre pas encore existant :
+            sousLivre = new TreeSet<>(new Comparator<Plat>() {
+                //comme TreeSet : faut voir avec quoi on compare :
+                @Override
+                public int compare(Plat o1, Plat o2) {
+                    int comp = o1.getNiveauDeDifficulte().compareTo(o2.getNiveauDeDifficulte());
+                    //si même niveau de difficulté :
+                    if(comp == 0) return o1.getNom().compareTo(o2.getNom());
+                    return comp;
+                }
+            });
+            //on rajoute le nouveau sousLivre dans la map plats :
+            this.plats.put(plat.getType(), sousLivre);
         }
-        sousLivre.add(plat);
-        return true;
+        //si sous livre déjà existant, on y rajoute juste le plat :
+        return sousLivre.add(plat);
     }
 
     /**
      * Supprime un plat du livre, s'il est dedans.
-     * Si le plat supprimé est le dernier de ce type de plat, il faut supprimer ce type de plat de la map.
+     * Si le plat supprimé est le dernier de ce type de plat,
+     * il faut supprimer ce type de plat de la map.
      * @param plat le plat à supprimer
      * @return true si le plat a été supprimé, false sinon.
      */
     public boolean supprimerPlat(Plat plat){
-        Util.checkObject(plat); // besoin de checker si plat n'est pas nul ? ---> demander.
-        SortedSet<Plat> sousLivre = livre.get(plat.getType());
+        Util.checkObject(plat);
+        SortedSet<Plat> sousLivre = plats.get(plat.getType());
         if(sousLivre == null) return false;
         boolean deleted = sousLivre.remove(plat);
-        if(sousLivre.isEmpty()) livre.remove(plat.getType());
+        if(deleted && sousLivre.isEmpty()) plats.remove(plat.getType());
         return deleted;
     }
 
     @Override
     public String toString() {
         StringBuilder text = new StringBuilder();
-        //apprendre a utiliser ceci pour map (et autres) :
-
-        livre.forEach((type, plats) -> {
+        plats.forEach((type, plats) -> {
             text.append(type).append("\n");
             text.append("=====").append("\n");
             for (Plat plat : plats) {
@@ -69,9 +78,9 @@ public class Livre {
      */
     public SortedSet<Plat> getPlatsParType(Plat.Type type){
         Util.checkObject(type);
-        SortedSet<Plat> platsTypes = livre.get(type);
+        SortedSet<Plat> platsTypes = plats.get(type);
         if(platsTypes == null) return null;
-        return Collections.unmodifiableSortedSet(platsTypes); // besoin de le rendre non modifiable ??
+        return Collections.unmodifiableSortedSet(platsTypes); // besoin de le rendre non modifiable
     }
     /**
      * Renvoie true si le livre contient le plat passé en paramètre. False sinon.
@@ -83,8 +92,8 @@ public class Livre {
     public boolean contient(Plat plat){
         // Ne pas utiliser 2 fois la méthode get() de la map et ne pas déclarer de variable locale.
         Util.checkObject(plat);
-        if(this.livre.containsKey(plat.getType()))
-            return this.livre.get(plat.getType()).contains(plat); // on chope le plat
+        if(this.plats.containsKey(plat.getType()))
+            return this.plats.get(plat.getType()).contains(plat); // on chope le plat
         // selon le type puis on check le plat en lui meme
         return false;
     }
@@ -95,7 +104,7 @@ public class Livre {
     public Set<Plat> tousLesPlats() {
         Set<Plat> plats = new HashSet<>();
         //Ne pas utiliser la méthode keySet() ou entrySet() ici !
-        for (Set<Plat> platsDunType : this.livre.values()) {
+        for (Set<Plat> platsDunType : this.plats.values()) {
             plats.addAll(platsDunType);
         }
         return plats;
