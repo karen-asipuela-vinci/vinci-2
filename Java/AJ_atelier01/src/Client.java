@@ -56,7 +56,7 @@ public class Client implements Iterable<Commande>{
         return commandeEnCours;
     }
 
-    public boolean enregistrer(Commande commande) {
+    public boolean enregistrerCommande(Commande commande) {
         //echoue si commande déjà en cours
         //ou si la commande n'est pas du meme client
         //if -> vérifie qu'il n'y a pas de commandes en cours et que le client est bien le meme

@@ -18,7 +18,7 @@ public class Commande implements Iterable<LigneDeCommande>{
         numeroSuivant++;
         this.date = LocalDateTime.now();
         lignesCommande = new ArrayList<>();
-        client.enregistrer(this);
+        client.enregistrerCommande(this);
     }
 
     public int getNumero() {
