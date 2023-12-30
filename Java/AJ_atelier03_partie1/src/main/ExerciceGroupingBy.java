@@ -84,7 +84,7 @@ public class ExerciceGroupingBy {
     //Map<TransactionsLevel,List<Transaction>>
     private void groupBy3() {
         System.out.println("GroupBy3");
-        Map<TransactionsLevel, List<Transaction>> map5 = transactions
+        Map<TransactionsLevel, List<Transaction>> map3 = transactions
                 .stream()
                 .collect(
                         Collectors.groupingBy((Transaction tr) -> {
@@ -97,6 +97,6 @@ public class ExerciceGroupingBy {
                             return TransactionsLevel.LO;
                         })
                 );
-        System.out.println(map5);
+        System.out.println(map3);
     }
 }
