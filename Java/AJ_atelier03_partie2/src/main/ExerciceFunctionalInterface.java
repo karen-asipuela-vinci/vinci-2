@@ -36,6 +36,14 @@ public class ExerciceFunctionalInterface {
         System.out.println("Employés triés:");
         System.out.println(employes);
 
+        employes.sort((a,b) -> {
+            //on compare d'abord la taille:
+            //si égal, on compare les noms :
+            if(a.getTaille() == b.getTaille()){
+                return a.getNom().compareTo(b.getNom());
+            }
+            return a.getTaille() - b.getTaille();
+        });
 
     }
 
@@ -52,6 +60,13 @@ public class ExerciceFunctionalInterface {
                 .map( e -> e.getNom());
         listeNom.forEach(System.out::println);
 
+
+        Stream<String> listeNomBis = employes.stream()
+                .filter(e -> e.getGenre() == Genre.HOMME)
+                .sorted(Comparator.comparingInt(Employe::getTaille)
+                        .reversed())
+                .map(new EmployeNomFunction());
+
     }
 
 
@@ -63,6 +78,6 @@ public class ExerciceFunctionalInterface {
     private static void exForEach(){
         employes.forEach(e -> System.out.println(e));
 
-
+        employes.forEach(new EmployeeConsumer());
     }
 }
