@@ -52,12 +52,6 @@ public class ExercicesOptional {
     }
 
 
-
-
-
-
-
-
     private void optional1() {
         System.out.println("optional1");
         var max2 = transactions
@@ -80,7 +74,6 @@ public class ExercicesOptional {
         } else {
             System.out.print("Pas de transaction.");
         }
-
     }
 
 }
