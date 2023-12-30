@@ -71,31 +71,29 @@ public class ExercicesDeBase {
         Stream<Transaction> s = transactions
                 .stream()
                 .filter(e -> e.getYear() == 2011); // TODO filtrer
-        System.out.println("sout du Stream brut" + s);
         s.forEach(System.out::println);
     }
 
     //Construire la liste de toutes les transactions dont la valeur est >600
     private void predicats2() {
-
         System.out.println("predicats2");
         var s = transactions
                 .stream()
                 .filter(e -> e.getValue() > 600); // TODO filtrer
-
         s.forEach(System.out::println);
     }
 
 
     //Construire la lise de toutes les transactions de Raoul
     private void predicats3() {
-
         System.out.println("predicats3");
         var s = transactions
                 .stream()
                 .filter(e -> e.getTrader().getName().equals("Raoul")); // TODO filtrer
         s.forEach(System.out::println);
     }
+
+            //!!! map (et flatMap) des Streams n'a rien à voir avec la structure des données Map
 
     //Construire la liste des villes où travaillent les courtiers (traders)
     private void map1() {
@@ -135,6 +133,9 @@ public class ExercicesDeBase {
                 .collect(Collectors.joining(", "));
         System.out.println(nomsTraders);
     }
+
+            //méthode sorted() pour trier des élements d'un flux.
+            //utilisé sans paramètre si compareTo "naturel"
     //Construire la liste de toutes les transactions triées par ordre décroissant de valeurs
     private void sort1() {
         System.out.println("sort1");
@@ -153,10 +154,11 @@ public class ExercicesDeBase {
                 .map(Transaction::getTrader)
                 .distinct()
                 .map(Trader::getName)
-                .sorted()
+                .sorted() // sans param car ordre alphabétique = ordre naturel
                 .collect(Collectors.joining(", ")); // TODO trier
 		System.out.println(nomsTries);
     }
+            //reduce == on réduit à une seule valeur
     //Afficher la valeur max des transactions
     private void reduce1() {
         System.out.println("reduce1");
@@ -177,7 +179,7 @@ public class ExercicesDeBase {
         // TODO reduce
         Transaction transacMin = transactions
                 .stream()
-                .reduce(transNeutre, (a,b) -> (a.getValue() < b.getValue() ? a:b));
+                .reduce(transNeutre, (a,b) -> (a.getValue() < b.getValue() ? a : b));
         // traduction : on compare la valeur de a et b : si ok (?) renvoie a, sinon (:) renvoie b
 
         System.out.println(transacMin);
