@@ -127,19 +127,4 @@ class PrixTest {
 
     }
 
-
-    /**void getTypePromo() {
-    }
-
-    @Test
-    void getValeurPromo() {
-    }
-
-    @Test
-    void definirPrix() {
-    }
-
-    @Test
-    void getPrix() {
-    }**/
 }
