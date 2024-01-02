@@ -7,7 +7,7 @@ import util.Util;
  * de téléphone.
  * Cette classe est immuable.
  */
-public class Enfant {
+public class EnfantImpl implements Enfant {
 	/**
 	 * Le nom de l'enfant
 	 */
@@ -26,7 +26,7 @@ public class Enfant {
 	 *                                     n'est pas spécifié ou vide.
 	 * 
 	 */
-	public Enfant(String nom, String telephone) {
+	public EnfantImpl(String nom, String telephone) {
 		Util.checkString(nom);
 		Util.checkString(telephone);
 		this.nom = nom;
@@ -36,6 +36,7 @@ public class Enfant {
 	/**
 	 * renvoie le nom de l'enfant
 	 */
+	@Override
 	public String getNom() {
 		return nom;
 	}
@@ -43,6 +44,7 @@ public class Enfant {
 	/**
 	 * renvoie le téléphone de l'enfant
 	 */
+	@Override
 	public String getTelephone() {
 		return telephone;
 	}

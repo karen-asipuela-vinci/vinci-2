@@ -9,7 +9,7 @@ import java.util.*;
  * le lieu de déroulement du stage, le numéro de semaine du stage,
  * son moniteur et les enfants qui y sont inscrits
  */
-public class Stage  {
+public class StageImpl implements Stage {
 	/**
 	 * L'intitulé du stage
 	 */
@@ -47,7 +47,7 @@ public class Stage  {
 	 * @exception IllegalArgumentException Exception lancée si l'un des paramètres
 	 *                                     n'est pas spécifié ou vide.
 	 */
-	public Stage(String intitule, String lieu, int numeroDeSemaine, Sport sport) {
+	public StageImpl(String intitule, String lieu, int numeroDeSemaine, Sport sport) {
 		Util.checkString(intitule);
 		Util.checkString(lieu);
 		if (numeroDeSemaine < 1 || numeroDeSemaine > 8) {
@@ -65,6 +65,7 @@ public class Stage  {
 	 * 
 	 * @return L'intitulé du stage
 	 */
+	@Override
 	public String getIntitule() {
 		return intitule;
 	}
@@ -74,6 +75,7 @@ public class Stage  {
 	 * 
 	 * @return Le lieu du stage
 	 */
+	@Override
 	public String getLieu() {
 		return lieu;
 	}
@@ -83,6 +85,7 @@ public class Stage  {
 	 * 
 	 * @return le numéro de la semaine durant laquelle le stage a lieu
 	 */
+	@Override
 	public int getNumeroDeSemaine() {
 		return numeroDeSemaine;
 	}
@@ -92,6 +95,7 @@ public class Stage  {
 	 * 
 	 * @return Le sport concerné par le stage
 	 */
+	@Override
 	public Sport getSport() {
 		return sport;
 	}
@@ -108,6 +112,7 @@ public class Stage  {
 	 *                                     n'est pas spécifié ou vide.
 	 * 
 	 */
+	@Override
 	public boolean enregistrerMoniteur(Moniteur moniteur) {
 		Util.checkObject(moniteur);
 		if (this.moniteur != null)
@@ -130,6 +135,7 @@ public class Stage  {
 	 * @return true si le moniteur a pu être supprimé
 	 * 
 	 */
+	@Override
 	public boolean supprimerMoniteur() {
 		if (moniteur == null)
 			return false;
@@ -144,6 +150,7 @@ public class Stage  {
 	 * 
 	 * @return moniteur qui assure le stage
 	 */
+	@Override
 	public Moniteur getMoniteur() {
 		return moniteur;
 	}
@@ -157,6 +164,7 @@ public class Stage  {
 	 * @exception IllegalArgumentException Exception lancée si l'un des paramètres
 	 *                                     n'est pas spécifié ou vide.
 	 */
+	@Override
 	public boolean ajouterEnfant(Enfant enfant) {
 		if (contientEnfant(enfant))
 			return false;
@@ -173,6 +181,7 @@ public class Stage  {
 	 * @exception IllegalArgumentException Exception lancée si l'un des paramètres
 	 *                                     n'est pas spécifié ou vide.
 	 */
+	@Override
 	public boolean supprimerEnfant(Enfant enfant) {
 		Util.checkObject(enfant);
 		return inscrits.remove(enfant);
@@ -186,6 +195,7 @@ public class Stage  {
 	 * @exception IllegalArgumentException Exception lancée si l'un des paramètres
 	 *                                     n'est pas spécifié ou vide.
 	 */
+	@Override
 	public boolean contientEnfant(Enfant enfant) {
 		Util.checkObject(enfant);
 		return  inscrits.contains(enfant);
@@ -196,6 +206,7 @@ public class Stage  {
 	 * 
 	 * @return le nombre d'enfants inscrits au stage.
 	 */
+	@Override
 	public int nombreDEnfants() {
 		return inscrits.size();
 	}
@@ -205,6 +216,7 @@ public class Stage  {
 	 * 
 	 * @return le Set des enfants inscrits au stage.
 	 */
+	@Override
 	public Set<Enfant> enfants() {
 		return Collections.unmodifiableSet(inscrits);
 	}

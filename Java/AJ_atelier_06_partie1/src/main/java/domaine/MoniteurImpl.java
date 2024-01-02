@@ -12,7 +12,7 @@ import util.Util;
  * Elle renferme également les différents stages qu'il effectue stockés par
  * semaine.
  */
-public class Moniteur{
+public class MoniteurImpl implements Moniteur {
 	
 
 	/**
@@ -30,7 +30,7 @@ public class Moniteur{
 	 * @exception IllegalArgumentException Exception lancée si l'un des paramètres
 	 *                                     n'est pas spécifié ou vide.
 	 */
-	public Moniteur(String nom) {
+	public MoniteurImpl(String nom) {
 		Util.checkString(nom);
 		this.nom = nom;
 		stages = new HashMap<>();
@@ -39,6 +39,7 @@ public class Moniteur{
 	/**
 	 * renvoie le nom du moniteur
 	 */
+	@Override
 	public String getNom() {
 		return nom;
 	}
@@ -52,6 +53,7 @@ public class Moniteur{
 	 * @exception IllegalArgumentException Exception lancée si le numéro de semaine
 	 * 												n'est pas compris entre 1 et 8.
 	 */
+	@Override
 	public boolean estLibre(int numeroDeSemaine) {
 		if (numeroDeSemaine < 1 || numeroDeSemaine > 8)
 			throw new IllegalArgumentException();
@@ -72,6 +74,7 @@ public class Moniteur{
 	 *                                     n'est pas spécifié ou vide.
 	 * 
 	 */
+	@Override
 	public boolean ajouterStage(Stage stage) {
 		if (this.contientStage(stage))
 			return false;
@@ -104,6 +107,7 @@ public class Moniteur{
 	 *                                     n'est pas spécifié ou vide.
 	 * 
 	 */
+	@Override
 	public boolean supprimerStage(Stage stage) {
 		if (!this.contientStage(stage))
 			return false;
@@ -122,6 +126,7 @@ public class Moniteur{
 	 *                                     n'est pas spécifié ou vide.
 	 * 
 	 */
+	@Override
 	public boolean contientStage(Stage stage) {
 		Util.checkObject(stage);
 		return this.stages.containsValue(stage);
@@ -132,6 +137,7 @@ public class Moniteur{
 	 * 
 	 * @return le nombre de stages.
 	 */
+	@Override
 	public int nombreDeStages() {
 		return this.stages.size();
 	}
@@ -141,6 +147,7 @@ public class Moniteur{
 	 * 
 	 * @return la liste des stages du moniteur.
 	 */
+	@Override
 	public List<Stage> stages() {
 		return new ArrayList(stages.values());
 	}

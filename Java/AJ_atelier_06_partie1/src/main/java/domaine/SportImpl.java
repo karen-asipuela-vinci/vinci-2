@@ -10,7 +10,7 @@ import java.util.Set;
  * La classe Sport représente un sport. Elle connaît son intitulé
  * et les moniteurs compétents dans ce sport.
  */
-public class Sport {
+public class SportImpl implements Sport {
 	/**
 	 * L'intitulé du sport
 	 */
@@ -28,7 +28,7 @@ public class Sport {
 	 * @exception IllegalArgumentException Exception lancée si l'un des paramètres
 	 *                                     n'est pas spécifié ou vide.
 	 */
-	public Sport(String intitule) {
+	public SportImpl(String intitule) {
 		Util.checkString(intitule);
 		this.intitule = intitule;
 		this.moniteurs = new HashSet<>();
@@ -40,6 +40,7 @@ public class Sport {
 	 * @return L'intitulé du sport
 	 */
 
+	@Override
 	public String getIntitule() {
 		return intitule;
 	}
@@ -52,6 +53,7 @@ public class Sport {
 	 * @exception IllegalArgumentException Exception lancée si l'un des paramètres
 	 *                                     n'est pas spécifié ou vide.
 	 */
+	@Override
 	public boolean ajouterMoniteur(Moniteur moniteur) {
 		if (this.contientMoniteur(moniteur))
 			return false;
@@ -67,6 +69,7 @@ public class Sport {
 	 * @exception IllegalArgumentException Exception lancée si l'un des paramètres
 	 *                                     n'est pas spécifié ou vide.
 	 */
+	@Override
 	public boolean supprimerMoniteur(Moniteur moniteur) {
 		if (!this.contientMoniteur(moniteur))
 			return false;
@@ -82,6 +85,7 @@ public class Sport {
 	 * @exception IllegalArgumentException Exception lancée si l'un des paramètres
 	 *                                     n'est pas spécifié ou vide.
 	 */
+	@Override
 	public boolean contientMoniteur(Moniteur moniteur) {
 		Util.checkObject(moniteur);
 		return this.moniteurs.contains(moniteur);
@@ -92,6 +96,7 @@ public class Sport {
 	 * 
 	 * @return Les moniteurs compétents dans le sport
 	 */
+	@Override
 	public Set<Moniteur> moniteurs() {
 		return Collections.unmodifiableSet(moniteurs);
 	}
