@@ -8,7 +8,7 @@ public class User {
     private int id;
     public String firstName;
     public String lastName;
-    private String Visa
+    private String Visa;
     private List<Order> orders = new ArrayList<Order>();
 
     public User(int id, String firstName, String lastName) {
