@@ -24,22 +24,20 @@ public class Instances {
     @Produces(MediaType.APPLICATION_JSON)
     public JsonStructure getInstanceGraphInfo(@QueryParam("builderclassname") String builderClassname) {
         try {
-            Class builderClass = Class.forName("be.vinci.instances."+builderClassname);
+            Class builderClass = Class.forName("be.vinci.instances."+ builderClassname);
             Object builderObject = builderClass.getConstructor().newInstance();
             for (Method m : builderClass.getDeclaredMethods()){
+                //récupère la classe qui a l'annotation @InstanceGraphBuilder :
                 if (m.isAnnotationPresent(InstanceGraphBuilder.class)) {
                     Object instanceGraph = m.invoke(builderObject);
                     InstancesAnalyzer analyzer = new InstancesAnalyzer(instanceGraph);
                     return analyzer.getFullInfo();
                 }
             }
-        } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InstantiationException |
-                 InvocationTargetException e){
+        } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException |
+                 InvocationTargetException ignore){
             throw new InternalError();
         }
         throw new WebApplicationException(404);
-
-
-
     }
 }
