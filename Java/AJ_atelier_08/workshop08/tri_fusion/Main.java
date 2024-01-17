@@ -9,8 +9,18 @@ public class Main {
 	public static void main(String[] args) {
 		int[] table = new Random().ints(100000000, 1, 100000000).toArray();
 		LocalDateTime start = LocalDateTime.now();
-		Sorter sorter = new Sorter(table);
+		//on rajoute nbThreads
+		Sorter sorter = new Sorter(table,8);
+		/* Quand mono thread, juste le démarrer c'est ok :
 		sorter.sort();
+		*/
+		//mais pour multi thread, il faut le démarrer et attendre qu'il se termine
+		//faut adapter la méthode run()//start() de Sorter.java
+		sorter.start();
+		try {
+			sorter.join();
+		} catch (InterruptedException ignore) {
+		}
 		System.out.println("\n" + ChronoUnit.MILLIS.between(start, LocalDateTime.now()));
 		// Vérification tri de la table
 		for (int i = 0; i < table.length-1; i++) {

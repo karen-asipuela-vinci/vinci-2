@@ -3,30 +3,52 @@ package tri_fusion;
 /**
  * Sort a table of int. Mono-thread version.
  */
-public class Sorter {
+//on rajoute extends Thread pour pouvoir utiliser join()
+// (car plusieurs threads)
+public class Sorter extends Thread{
 
 	// Table to sort
 	private int[] table;
 	// Slice of the table to sort
 	private int start, end;
-	
+	// Number of threads in use
+	private int nbThreads;
+
+	//on rajoute nbThreads pour pouvoir l'utiliser dans le main
 	public Sorter(int[] table) {
-		this(table, 0, table.length - 1);
+		this(table, 0, table.length - 1, 2);
 	}
 
-	public Sorter(int[] t, int start, int end) {
+	//on créé un constructeur avec nbThreads
+	public Sorter(int[] table, int nbThreads) {
+		this(table, 0, table.length - 1, nbThreads);
+	}
+
+	//on créé un constructeur avec start et end
+	public Sorter(int[] table, int start, int end) {
+		this(table, start, end, 2);
+	}
+
+	//constructeur d'origine, on rajoute nbThreads
+	public Sorter(int[] t, int start, int end, int nbThreads) {
 		this.table = t;
 		this.start = start;
 		this.end = end;
+		this.nbThreads = nbThreads;
 	}
+
+	//on pourrait rajouter un DEFAULT_NB_THREADS = 2 pour faciliter écriture
 
 	/**
 	 * Sort a table of int in ascending order
-	 * 
-	 * @param table the table to sort
+	 *
 	 */
 	public void sort() {
 		this.sort(this.start, this.end);
+	}
+
+	public void run() {
+		this.sort();
 	}
 
 	/**
@@ -36,15 +58,40 @@ public class Sorter {
 	 * @param end end index of the slice to sort
 	 */
 	private void sort(int start, int end) {
+		// Si la taille du tableau est inférieure à 2
 		if (end - start < 2) {
 			if (table[start] > table[end]) {
 				swap(start, end);
 			}
-		} else {
+		} // Si plus grands tableaux
+		else {
+			//on marque le milieu
 			int milieu = start + (end - start) / 2;
-			sort(start, milieu);
-			sort(milieu + 1, end);
-			this.mergeSort(start, end);
+			//si on a encore des threads
+			if(this.nbThreads > 1) {
+				//on créé un thread
+				Sorter sorter1 = new Sorter(table, start, milieu, this.nbThreads / 2);
+				//on créé un thread
+				Sorter sorter2 = new Sorter(table, milieu + 1, end, this.nbThreads / 2);
+				//on lance les threads
+				sorter1.sort();
+				sorter2.sort();
+				//on attend la fin des threads
+				try {
+					sorter1.join();
+					sorter2.join();
+				} catch (InterruptedException e) {}
+				//on fusionne les tableaux
+				this.mergeSort(this.start, this.end);
+			}
+			//sinon on fait un tri classique
+			else {
+				//on créé les threads
+				sort(start, milieu);
+				sort(milieu + 1, end);
+				//on fusionne les tableaux
+				this.mergeSort(start, end);
+			}
 		}
 	}
 
