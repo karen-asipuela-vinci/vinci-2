@@ -16,7 +16,8 @@ public class Compte {
         historique = new ArrayList<>();
     }
 
-    public boolean depenser(Depense depense) {
+    //la méthode dépenser doit s'accorder: toujours "dernière version"
+    public synchronized boolean depenser(Depense depense) {
         if (solde<depense.getMontant())
             return false;
 

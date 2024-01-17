@@ -14,7 +14,11 @@ public class Abonnement extends Thread {
 
     @Override
     public void run() {
-        while(compte.depenser(new Depense(prixMensuel, "domiciliation pour " + nom))) {
+        while(true) {
+            //on rajoute condition que solde soit suffisant
+            if(!compte.depenser(new Depense(prixMensuel, "domiciliation pour " + nom))) {
+                return;
+            }
             try {
                 Thread.sleep(500);
             } catch (InterruptedException e) {
