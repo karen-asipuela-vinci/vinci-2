@@ -14,9 +14,12 @@ public class Grimoire {
     }
 
     public enum Ceremonie {
+        //Pour régler un deadlock, il faut éviter que l'un se marche sur l'autre :
+        // Mettre le meme ordre garantit que tous les threads acquièrent les ressources dans le même ordre,
+        // évitant ainsi le scénario où deux threads peuvent être bloqués en attendant la ressource que l'autre détient.
         SYMPOSIUM_DES_ILLUSIONS_PRISMATIQUES(Incantation.FLAMBOIEMENT_ARDENT, Incantation.ECLAT_DU_PHENIX, Incantation.MURMURES_GIVRES),
-        ASSEMBLEE_DES_ONDES_FRISSONNATES(Incantation.MURMURES_GIVRES, Incantation.VORTEX_ANCESTRAL, Incantation.FLAMBOIEMENT_ARDENT),
-        RITUEL_DU_CREPUSCAL_ABYSSAL(Incantation.RESONNANCE_DES_SAGES, Incantation.MURMURES_GIVRES, Incantation.FLAMBOIEMENT_ARDENT);
+        ASSEMBLEE_DES_ONDES_FRISSONNATES(Incantation.FLAMBOIEMENT_ARDENT, Incantation.ECLAT_DU_PHENIX, Incantation.MURMURES_GIVRES),
+        RITUEL_DU_CREPUSCAL_ABYSSAL(Incantation.FLAMBOIEMENT_ARDENT, Incantation.ECLAT_DU_PHENIX, Incantation.MURMURES_GIVRES);
 
         final Incantation incantation1;
         final Incantation incantation2;
