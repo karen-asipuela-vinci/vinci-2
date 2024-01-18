@@ -6,7 +6,15 @@
       <list>
         <option value="$PROJECT_DIR$/AJ_atelier_06_partie1/pom.xml" />
         <option value="$PROJECT_DIR$/AJ_atelier_06_partie2/pom.xml" />
+        <option value="$PROJECT_DIR$/AJ_atelier_08/pom.xml" />
+        <option value="$PROJECT_DIR$/workshop08/pom.xml" />
       </list>
+    </option>
+    <option name="ignoredFiles">
+      <set>
+        <option value="$PROJECT_DIR$/AJ_atelier_08/pom.xml" />
+        <option value="$PROJECT_DIR$/workshop08/pom.xml" />
+      </set>
     </option>
     <option name="workspaceImportForciblyTurnedOn" value="true" />
   </component>

@@ -10,5 +10,9 @@
         <module name="AJ_atelier_06_partie1" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="AJ_atelier_08" target="17" />
+      <module name="workshop08" target="17" />
+    </bytecodeTargetLevel>
   </component>
 </project>
