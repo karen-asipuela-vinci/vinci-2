@@ -1,6 +1,7 @@
 package Server;
 
 import Domaine.Query;
+import Domaine.QueryFactory;
 
 import java.util.Scanner;
 
@@ -13,7 +14,7 @@ public class ProxyServer {
                 System.out.println("Veuillez saisir une URL :");
                 String url = sc.nextLine();
                 //créer Query
-                Query query = new Query(url, Query.QueryMethod.GET);
+                Query query = QueryFactory.getQuery(url, Query.QueryMethod.GET);
                 //démarrer QueryHandler
                 QueryHandler queryHandler = new QueryHandler(query);
                 queryHandler.start();
