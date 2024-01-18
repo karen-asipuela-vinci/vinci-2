@@ -6,14 +6,21 @@ class QueryImpl implements Query {
     //"HTTP method” (GET, POST) de type QueryMethod (classe interne énuméré)
     private QueryMethod queryMethod;
 
-    public boolean isGetMethod() {
-        return queryMethod == QueryMethod.GET;
+    public QueryImpl() {
+        //vide car on a besoin de la méthode setUrl et setMethod
     }
 
+    //on garde un constructeur avec les paramètres url et queryMethod
+    //pour pouvoir les setter
     public QueryImpl(String url, QueryMethod queryMethod) {
         this.url = url;
         this.queryMethod = queryMethod;
     }
+
+    public boolean isGetMethod() {
+        return queryMethod == QueryMethod.GET;
+    }
+
 
     public String getUrl() {
         return url;
@@ -21,6 +28,16 @@ class QueryImpl implements Query {
 
     public QueryMethod getQueryMethod() {
         return queryMethod;
+    }
+
+    @Override
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    @Override
+    public void setMethod(QueryMethod method) {
+        this.queryMethod = method;
     }
 
 }

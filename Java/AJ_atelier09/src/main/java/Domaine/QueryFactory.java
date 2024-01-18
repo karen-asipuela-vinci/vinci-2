@@ -1,8 +1,8 @@
 package Domaine;
 
-public class QueryFactory {
-    //méthode statique qui créé une Query(Impl)
-    public static Query getQuery(String url, QueryImpl.QueryMethod queryMethod) {
-        return new QueryImpl(url, queryMethod);
-    }
+//!!!!! ici c'est une interface et non une classe
+public interface QueryFactory {
+    //doit juste avoir méthode getQuery qui est implémentée dans QueryFactoryImpl
+    Query getQuery();
+
 }
