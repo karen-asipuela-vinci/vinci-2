@@ -7,6 +7,7 @@ import Server.ProxyServer;
 
 public class Main {
     public static void main(String[] args) {
+        //update début atelier 10
         //injection de dépendance
         //Il faut d'abord créer QueryFactory -> besoin de QueryFactoryImpl
         QueryFactory queryFactory = new QueryFactoryImpl();
