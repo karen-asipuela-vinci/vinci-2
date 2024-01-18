@@ -7,31 +7,35 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
+import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
-        String url = "https://duckduckgo.com/";
+        try (Scanner sc = new Scanner(System.in)) {
+            System.out.println("Veuillez saisir une URL :");
+            String url = sc.nextLine();
 
-        // Créer un client HTTP
-        HttpClient httpClient = HttpClients.createDefault();
-        // Créer une requête GET
-        HttpGet httpGet = new HttpGet(url);
+            // Créer un client HTTP
+            HttpClient httpClient = HttpClients.createDefault();
+            // Créer une requête GET
+            HttpGet httpGet = new HttpGet(url);
 
-        try {
-            // Exécuter la requête et obtenir la réponse
-            HttpResponse response = httpClient.execute(httpGet);
+            try {
+                // Exécuter la requête et obtenir la réponse
+                HttpResponse response = httpClient.execute(httpGet);
 
-            // Afficher le code de statut
-            System.out.println("Status Code: " + response.getStatusLine().getStatusCode());
+                // Afficher le code de statut
+                System.out.println("Status Code: " + response.getStatusLine().getStatusCode());
 
-            // Afficher le contenu HTML avec EntityUtils
-            String htmlContent = EntityUtils.toString(response.getEntity());
-            System.out.println("HTML :\n" + htmlContent);
+                // Afficher le contenu HTML avec EntityUtils
+                String htmlContent = EntityUtils.toString(response.getEntity());
+                System.out.println("HTML :\n" + htmlContent);
 
-        } catch (ClientProtocolException e) {
-            System.err.println("Erreur de protocole client: " + e.getMessage());
-        } catch (IOException e) {
-            System.err.println("Erreur d'entrée/sortie: " + e.getMessage());
+            } catch (ClientProtocolException e) {
+                System.err.println("Erreur de protocole client: " + e.getMessage());
+            } catch (IOException e) {
+                System.err.println("Erreur d'entrée/sortie: " + e.getMessage());
+            }
         }
     }
 }
