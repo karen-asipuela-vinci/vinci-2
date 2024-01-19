@@ -44,4 +44,13 @@ public class TodoListTest {
                 () -> assertTrue(todoList.containsTask("task1"))
         );
     }
+
+    @Test
+    void removeTask() {
+        todoList.add("task1");
+        assertAll(
+                () -> assertTrue(todoList.remove("task1")),
+                () -> assertFalse(todoList.containsTask("task1"))
+        );
+    }
 }

@@ -20,4 +20,11 @@ public class TodoList {
         }
         return tasks.contains(task1);
     }
+
+    public boolean remove(String task1) {
+        if(containsTask(task1)) {
+            return tasks.remove(task1);
+        }
+        return false;
+    }
 }
