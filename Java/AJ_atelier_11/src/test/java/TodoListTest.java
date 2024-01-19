@@ -1,3 +1,4 @@
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import javax.swing.*;
@@ -6,9 +7,17 @@ import static java.util.random.RandomGeneratorFactory.all;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class TodoListTest {
+    //comme on réutilise à chaque fois la même instance de TodoList, on peut la déclarer en attribut de classe
+    //et l'initialiser dans la méthode setUp
+    //ainsi, on ne crée pas une nouvelle instance à chaque test
+    private TodoList todoList;
+    @BeforeEach
+    void setUp() {
+        todoList = new TodoList();
+    }
+
     @Test
     void addTask() {
-        TodoList todoList = new TodoList();
 
         assertAll(
             () -> assertTrue(todoList.add("task1")),
@@ -18,7 +27,6 @@ public class TodoListTest {
 
     @Test
     void addEmptyTask() {
-        TodoList todoList = new TodoList();
 
         assertAll(
             () -> assertFalse(todoList.add("")),
