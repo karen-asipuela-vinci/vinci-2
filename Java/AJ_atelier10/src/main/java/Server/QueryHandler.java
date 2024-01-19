@@ -17,10 +17,18 @@ public class QueryHandler extends Thread {
     private Query query;
 
     //ne pas oublier constructeur
+    /**
+     * Constructeur
+     *
+     * @param query Requête à traiter
+     */
     public QueryHandler(Query query) {
         this.query = query;
     }
     //fait la requete avec le httpClient et écrit la réponse à l'écran
+    /**
+     * Exécuter la requête
+     */
     public void run() {
         try(CloseableHttpClient httpclient = HttpClients.createDefault()) {
             HttpResponse response = null;

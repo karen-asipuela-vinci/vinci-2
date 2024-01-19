@@ -13,6 +13,9 @@ public class BlacklistService {
 
     private static Set<String> blacklistedDomains;
 
+    /**
+     * Chargement de la liste des domaines interdits
+     */
     static {
         try (FileInputStream input = new FileInputStream("blacklist.properties")) {
             // Charger le fichier de propriétés
@@ -28,7 +31,12 @@ public class BlacklistService {
 
     }
 
-
+    /**
+     * Vérifier si la requête est autorisée
+     *
+     * @param query Requête à vérifier
+     * @return true si la requête est autorisée, false sinon
+     */
     public boolean check(Query query) {
         // Vérifier si le domaine de l'URL de la requête est dans la liste des domaines interdits
         //on peut vérifier le domaine directement grâce au Stream API

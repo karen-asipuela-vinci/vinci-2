@@ -1,0 +1,1 @@
+typeSearchIndex = [{"l":"All Classes and Interfaces","u":"allclasses-index.html"},{"p":"Blacklist","l":"BlacklistService"},{"p":"Main","l":"Main"},{"p":"Server","l":"ProxyServer"},{"p":"Domaine","l":"Query"},{"p":"Domaine","l":"QueryFactory"},{"p":"Domaine","l":"QueryFactoryImpl"},{"p":"Server","l":"QueryHandler"},{"p":"Domaine","l":"Query.QueryMethod"}];updateSearchResults();
