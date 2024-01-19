@@ -15,4 +15,17 @@ public class TodoListTest {
             () -> assertTrue(todoList.containsTask("task1"))
         );
     }
+
+    @Test
+    void addEmptyTask() {
+        TodoList todoList = new TodoList();
+
+        assertAll(
+            () -> assertFalse(todoList.add("")),
+            () -> assertFalse(todoList.containsTask("")),
+            //ne pas oublier les nulls !!!
+            () -> assertFalse(todoList.add(null)),
+            () -> assertFalse(todoList.containsTask(null))
+        );
+    }
 }
