@@ -18,7 +18,6 @@ public class TodoListTest {
 
     @Test
     void addTask() {
-
         assertAll(
             () -> assertTrue(todoList.add("task1")),
             () -> assertTrue(todoList.containsTask("task1"))
@@ -27,13 +26,22 @@ public class TodoListTest {
 
     @Test
     void addEmptyTask() {
-
         assertAll(
             () -> assertFalse(todoList.add("")),
             () -> assertFalse(todoList.containsTask("")),
             //ne pas oublier les nulls !!!
             () -> assertFalse(todoList.add(null)),
             () -> assertFalse(todoList.containsTask(null))
+        );
+    }
+
+    @Test
+    void addExistingTask() {
+        //on rajoûte une tâche
+        todoList.add("task1");
+        assertAll(
+                () -> assertFalse(todoList.add("task1")),
+                () -> assertTrue(todoList.containsTask("task1"))
         );
     }
 }
