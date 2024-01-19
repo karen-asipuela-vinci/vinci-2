@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class TodoListTest {
     @Test
-    void addTast() {
+    void addTask() {
         TodoList todoList = new TodoList();
 
         assertAll(
