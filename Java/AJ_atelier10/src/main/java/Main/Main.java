@@ -19,4 +19,23 @@ public class Main {
         //puis démarrer le serveur
         proxyServer.startServer();
     }
+    /*
+    remarque pour l'exo sur création de .jar:
+    - via IntelliJ, il faut aller dans File -> Project Structure -> Artifacts
+    - cliquer sur le + et choisir JAR -> From modules with dependencies...
+    - choisir le Main class
+    - choisir le répertoire de sortie
+    - cliquer sur OK
+    - aller dans Build -> Build Artifacts -> Build
+    - le .jar se trouve dans le répertoire de sortie
+
+    Pour créer une "automatisation", adapter le fichier pom.xml:
+    - ajouter la balise <build>...</build>
+    - ajouter la balise <plugins>...</plugins>
+    - ajouter la balise <plugin>...</plugin>
+    - ajouter la balise <executions>...</executions>
+    etc -> voir fichier
+
+    Pour relancer la construction, crtl crtl + mvn clean compile assembly:single
+     */
 }
