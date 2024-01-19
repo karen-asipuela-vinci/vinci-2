@@ -1,5 +1,6 @@
 package Server;
 
+import Blacklist.BlacklistService;
 import Domaine.Query;
 import Domaine.QueryFactory;
 
@@ -9,10 +10,14 @@ import java.util.Scanner;
 public class ProxyServer {
     //necessite une QueryFactory pour créer Query
     QueryFactory queryFactory;
+    //necessite un BlacklistService pour vérifier si le domaine est blacklisté
+    BlacklistService blacklistService;
 
     //constructeur
-    public ProxyServer(QueryFactory queryFactory) {
+    //on rajoute le BlacklistService
+    public ProxyServer(QueryFactory queryFactory, BlacklistService blacklistService) {
         this.queryFactory = queryFactory;
+        this.blacklistService = blacklistService;
     }
 
     public void startServer() {
@@ -27,9 +32,15 @@ public class ProxyServer {
                 //besoin de setter l'url et le QueryMethod
                 query.setUrl(url);
                 query.setMethod(Query.QueryMethod.GET);
-                //démarrer QueryHandler
-                QueryHandler queryHandler = new QueryHandler(query);
-                queryHandler.start();
+                //vérifier si le domaine est blacklisté
+                if(blacklistService.check(query)) {
+                    //démarrer QueryHandler
+                    QueryHandler queryHandler = new QueryHandler(query);
+                    queryHandler.start();
+                } else {
+                    System.err.println("Query rejected : domain blacklisted !");
+                }
+
             }
         }
     }
