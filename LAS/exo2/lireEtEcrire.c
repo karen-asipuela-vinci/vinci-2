@@ -45,8 +45,6 @@ int main(int argc, char* argv[]) {
             exit(1);
         }
 
-    // Descripteur de fichier pour l'entrée standard
-    int input = STDIN_FILENO;
     // Tableau pour stocker une ligne de texte
     char line[MAX_LINE_LENGTH + 1];
 
@@ -54,7 +52,8 @@ int main(int argc, char* argv[]) {
     //on utilise fgets car ligne entière
         line[strcspn(line, "\n")] = '\0'; // Suppression du caractère de saut de ligne à la fin de la ligne
 
-        if (isalpha(line[0])) { // Vérification si la première lettre de la ligne est une lettre alphabétique
+        // Vérification si la première lettre de la ligne est une lettre alphabétique
+        if (isalpha(line[0])) {
             if (isupper(line[0])) { // Vérification si la première lettre est en majuscule
                 writeToFile(fd1, line); // Écriture de la ligne dans le premier fichier
             } else { // Si la première lettre est en minuscule
@@ -65,6 +64,5 @@ int main(int argc, char* argv[]) {
 
     close(fd1); // Fermeture du premier fichier
     close(fd2); // Fermeture du deuxième fichier
-    close(input); // Fermeture de l'entrée standard
     return 0;
 }
