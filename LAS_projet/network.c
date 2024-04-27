@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "utils_v1.h"
-
+// à supprimer : 
+// includes dans network.h et utils_v1.h
 
 int initSocketClient(char *serverIP, int serverPort)
 {

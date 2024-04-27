@@ -1,4 +1,4 @@
-#ifndef _PAYER_H_
+#ifndef _PLAYER_H_
 #define _PLAYER_H_
 
 #define MAX_PSEUDO 256
