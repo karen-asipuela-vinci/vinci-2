@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "messages.h"
+#include "utils_v1.h"
 
 int main(int argc, char const *argv[])
 {
@@ -50,7 +51,7 @@ int main(int argc, char const *argv[])
     sockfd = initSocketClient(SERVER_IP, SERVER_PORT);
     //envoie la requete d'inscription au serveur et attend la reponse
     // * *msg nécessaire ou juste msg ?
-    sendMessageAndReceiveResponse(sockfd, *msg);
+    sendMessageAndReceiveResponse(sockfd, *msg.messageText);
 
     //traitement de la reponse reçue du serveur
     switch (msg.code)
@@ -82,7 +83,7 @@ int main(int argc, char const *argv[])
 
             //recuperation de la position de la tuile
                 //via le file donné en argument
-            if(files!=NULL){
+            if(file!=NULL){
                 position = atoi(lines[positionInFile]);
                 positionInFile++;
             }else{
@@ -95,7 +96,7 @@ int main(int argc, char const *argv[])
             printf("Tuile placée à la position  : %d\n", position);
 
 	        msg.code = FINISHED_PLAYING;
-            sendMessageAndReceiveResponse(sockfd, *msg);
+            sendMessageAndReceiveResponse(sockfd, *msg.messageText);
         }
     }else{
 		printf("PARTIE ANNULEE\n");
@@ -111,9 +112,9 @@ int main(int argc, char const *argv[])
         printf("Votre score est de : %d\n", score);
 
         msg.code = FINAL_SCORE;
-        sendMessageAndReceiveResponse(sockfd, *msg);
+        sendMessageAndReceiveResponse(sockfd, *msg.messageText);
 
-        if(msg.code==RANKING){
+        if(msg.code==FINAL_RANKING){
             displayRanking(msg.scores);
         }
 

@@ -2,7 +2,7 @@
 #define _NETWORK_H_
 
 #include "player.h"
-#include "message.h"
+#include "messages.h"
 
 
 /** 

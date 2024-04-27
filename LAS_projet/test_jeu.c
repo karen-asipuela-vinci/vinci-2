@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include "jeu.h"
 
-// commande pour le lancer avec testUnit : gcc -o test_jeu test_jeu.c jeu.c
+// commande pour le lancer avec testUnit : gcc -o test_jeu test_jeu.c jeu.c -lcunit
 // puis lancer fichier créé : ./test_jeu
 
 int randomIntBetween(int min, int max) {

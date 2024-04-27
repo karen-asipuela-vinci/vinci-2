@@ -7,6 +7,7 @@ typedef struct Player
 {
 	char pseudo[MAX_PSEUDO];
 	int sockfd;
+	int pipefd[2];
 } Player;
 
 #endif

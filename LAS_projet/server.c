@@ -1,9 +1,19 @@
-#define MAX_PLAYERS 4
-#define MIN_PLAYERS 2
-#define TIME_INSCRIPTION 30
+#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
+#include "utils_v1.h"
 #include "messages.h"
 #include "player.h"
 #include "score.h"
+#include "network.h"
+#include "ipc.h"
+#include "jeu.h"
+
+
+#define MAX_PLAYERS 4
+#define MIN_PLAYERS 2
+#define TIME_INSCRIPTION 30
+
 
 
 Player tabPlayers[MAX_PLAYERS];
@@ -14,22 +24,35 @@ void endServerHandler(int sig)
 	end_inscriptions = 1;
 }
 
+void handlePlayerCommunication(Player *player) {
+    // Child process
+    // Close unused ends of the pipes
+    close(player->pipefd[1]);  // Close write end of read pipe
+    close(player->pipefd[0]); // Close read end of write pipe
+    // Redirect standard input/output to the pipes
+    dup2(player->pipefd[0], STDIN_FILENO);   // Replace stdin with read end of read pipe
+    dup2(player->pipefd[1], STDOUT_FILENO); // Replace stdout with write end of write pipe
 
-void childProcess(int i) {
-    StructMessage msg = NULL;
+ }
+
+
+
+void childProcess(void *arg) {
+    int i = *(int*)arg;
+    StructMessage msg;
     Ranking* scores = NULL;
 
-        /* Dans le processus enfant */
-        handlePlayerCommunication(&tabPlayers[i]); // Gérer la communication avec le joueur
+    /* Dans le processus enfant */
+    handlePlayerCommunication(&tabPlayers[i]); // Gérer la communication avec le joueur
 
     //arrete de passer dans la boucle apres avoir gere le message de fin de partie
     while (msg.code != FINISH_GAME){
         //recuperation du message envoyé par le serveur
-        sread(tabPlayers[i].pipefd_read[0], msg, sizeof(msg));
+        sread(tabPlayers[i].sockfd, &msg, sizeof(msg));
         //envoi du message au client et attente de la réponse
-        sendMessageAndReceiveResponse(tabPlayers[i].sockfd, *msg);
+        sendMessageAndReceiveResponse(tabPlayers[i].sockfd, &msg);
         //envoi de la réponse du client au serveur
-        nwrite(tabPlayers[i].pipefd_write[0], msg, sizeof(msg));
+        nwrite(tabPlayers[i].sockfd, &msg, sizeof(msg));
     }
 
     //recupere le semaphore
@@ -45,23 +68,17 @@ void childProcess(int i) {
     //envoi du ranking final au client
     msg.code = FINAL_RANKING;
     msg.scores = ranking;
-    swrite(tabPlayers[i].sockfd, msg, sizeof(*msg));
+    swrite(tabPlayers[i].sockfd, &msg, sizeof(&msg));
+
+    free(arg);
 
     exit(21);
 }
 
-
-void handlePlayerCommunication(Player *player) {
-    // Child process
-    // Close unused ends of the pipes
-    close(player->pipefd_read[1]);  // Close write end of read pipe
-    close(player->pipefd_write[0]); // Close read end of write pipe
-    // Redirect standard input/output to the pipes
-    dup2(player->pipefd_read[0], STDIN_FILENO);   // Replace stdin with read end of read pipe
-    dup2(player->pipefd_write[1], STDOUT_FILENO); // Replace stdout with write end of write pipe
-
- }
-
+// pour le test : on doit bloquer le main
+// mettre à 1 pour utiliser le main
+#define TEST 0
+#if TEST == 1
 int main(int argc, char const *argv[])
 {
     int sockfd, newsockfd, i;
@@ -102,7 +119,7 @@ int main(int argc, char const *argv[])
 	alarm(TIME_INSCRIPTION);
     while (!end_inscriptions && nbPlayers < MAX_PLAYERS)
     {
-        newsockfd = accept(sockfd, NULL, NULL);
+        newsockfd = saccept(sockfd);
         if (newsockfd > 0)
         {
             ret = sread(newsockfd, &msg, sizeof(msg));
@@ -114,10 +131,12 @@ int main(int argc, char const *argv[])
                 // Création des pipes bidirectionnels pour la communication avec le serveur fils
                 int pipefd[2];
                 int pipefd2[2];
-                if (tabPlayers[i].pipefd_read = spipe(pipefd) == -1 || tabPlayers[i].pipefd_write = spipe(pipefd2) == -1) {
+                if (spipe(pipefd) == -1 || spipe(pipefd2) == -1) {
                     perror("Erreur lors de la création des pipes");
                     exit(EXIT_FAILURE);
                 }
+                tabPlayers[i].pipefd[0] = pipefd[0]; 
+                tabPlayers[i].pipefd[1] = pipefd[1];
                 nbPlayers++;
                 printf("Nb Inscriptions : %i\n", nbPlayers);
                 i++;
@@ -141,28 +160,29 @@ int main(int argc, char const *argv[])
 		exit(0);
 	}
 
-     for (i = 0; i < nbPlayers; i++)
-    {
+     for (i = 0; i < nbPlayers; i++){
+        int* arg = malloc(sizeof(int));
+        *arg = i;
         // Création du processus fils
-        //TODO changer en fork_and_run1??
-        pid_t pid = fork_and_run2(childProcess, i);
+        pid_t pid = fork_and_run1(childProcess, arg);
       
-            handlePlayerCommunication(&tabPlayers[i]); // Gérer la communication avec le joueur
+        handlePlayerCommunication(&tabPlayers[i]); // Gérer la communication avec le joueur
       
-            close(tabPlayers[i].pipefd_read[0]);   // Fermer l'extrémité de lecture du pipe de lecture
-            close(tabPlayers[i].pipefd_write[1]);  // Fermer l'extrémité d'écriture du pipe d'écriture
-        }
+        close(tabPlayers[i].pipefd[0]);   // Fermer l'extrémité de lecture du pipe de lecture
+        close(tabPlayers[i].pipefd[1]);  // Fermer l'extrémité d'écriture du pipe d'écriture
+    }
     
 
     //GAME PART
 	int nbPlayersAlreadyPlayed = 0;
     int nbTurnsPlayed = 0;
     int currentTuile;
-    int tuiles = initializeTiles();
+    int* tuiles = initializeTiles();
+    struct pollfd poll_fds[MAX_PLAYERS];
 
    // Initialiser les structures pollfd pour surveiller les pipes d'écriture des processus enfants
     for (i = 0; i < nbPlayers; i++) {
-    poll_fds[i].fd = tabPlayers[i].pipefd_write[1]; //le pipe d'écriture du processus enfant
+    poll_fds[i].fd = tabPlayers[i].pipefd[1]; //le pipe d'écriture du processus enfant
     poll_fds[i].events = POLLOUT; //Surveiller les événements d'écriture
     }
    
@@ -181,12 +201,13 @@ int main(int argc, char const *argv[])
         msg.tuile = currentTuile;
 
         for (i = 0; i < nbPlayers; i++){
-            nwrite(tabPlayers[i].pipefd_read[1], &msg,sizeof(msg));
+            nwrite(tabPlayers[i].pipefd[1], &msg,sizeof(msg));
         }
 
     //TODO polls
     bool playersSentPosition[MAX_PLAYERS] = {false};
     int numPlayersReady = 0;
+    
     // Attendre que tous les joueurs confirment qu'ils ont reçu la tuile actuelle
     while (numPlayersReady < nbPlayers) {
         int poll_result = spoll(poll_fds, nbPlayers, 0); 
@@ -197,7 +218,7 @@ int main(int argc, char const *argv[])
                     // et le joueur n'a pas encore envoyé sa position pour ce tour
                 if ((poll_fds[i].revents & POLLOUT) && !playersSentPosition[i]) {
                 
-                    sread(tabPlayers[i].pipefd_write[0], &msg, sizeof(msg));
+                    sread(tabPlayers[i].pipefd[0], &msg, sizeof(msg));
                     // traittez la potition de tuile recu du serveur fils
                     if(msg.code == FINISHED_PLAYING){
                     // Marquez le joueur comme ayant envoyé sa position pour ce tour
@@ -210,29 +231,29 @@ int main(int argc, char const *argv[])
             //gerer l'erreur
         }
 }
-    for(i = 0; i < MAX_PLAYERS, i++){
-        playersSentPosition[i] = {false}
+    for(i = 0; i < MAX_PLAYERS; i++){
+        playersSentPosition[i] = false;
     }
-    nbTurnsPlayed ++
+    nbTurnsPlayed ++;
     }
 
     //END OF GAME PART
     msg.code = FINISH_GAME;
       for (i = 0; i < nbPlayers; i++){
-            nwrite(tabPlayers[i].pipefd_read[1], sizeof(msg));
+            // TODO : check si faux
+            write(tabPlayers[i].pipefd[1], msg.messageText, strlen(msg.messageText) + 1);
         }
 
 
-
     //TRI DES SCORES 
-    Ranking *sortedRanking = sortRanking(&scores);
+    Ranking *sortedRanking = sortRanking(scores);
     // rend accès à la mémoire partagée
     sem_up(sem, 0);
 
     // liberation des différentes ressources a la fin du programme
     for (i = 0; i < nbPlayers; i++) {
-        close(tabPlayers[i].pipefd_read[0]);   // Fermeture du côté lecture du pipe
-        close(tabPlayers[i].pipefd_write[1]);  // Fermeture du côté écriture du pipe
+        close(tabPlayers[i].pipefd[0]);   // Fermeture du côté lecture du pipe
+        close(tabPlayers[i].pipefd[1]);  // Fermeture du côté écriture du pipe
     }
 
     if (lines != NULL) {
@@ -244,7 +265,10 @@ int main(int argc, char const *argv[])
 
     disconnect_players(tabPlayers, nbPlayers);
 	sclose(sockfd);
-    sshmdt(ranking);
+    // TODO : check si bien FINAL_RANKING ou RANKING ???
+    sshmdt(sortedRanking);
 
     return 0;
 }
+
+#endif

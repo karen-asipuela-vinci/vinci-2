@@ -1,15 +1,7 @@
-
-#include "messages.h"
+#include "ipc.h"
 #include "player.h"
 #include "utils_v1.h"
-
-#define SHM_KEY  5
-#define SEM_KEY  6
-#define PERM 0666
-
-Ranking* initializeSharedMemory();
-
-int initializeSemaphores();
+#include "messages.h"
 
 Ranking* initializeSharedMemory(){
     int shm_id = sshmget(SHM_KEY, sizeof(Ranking), IPC_CREAT | PERM);
