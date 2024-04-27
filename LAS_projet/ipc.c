@@ -6,8 +6,8 @@
 #define SEM_KEY  6
 #define PERM 0666
 
-
-void initializeSharedMemory();
+// à supprimer ???
+// void initializeSharedMemory();
 
 int initializeSemaphores();
 
