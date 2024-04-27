@@ -1,13 +1,13 @@
 
 #include "messages.h"
 #include "player.h"
+#include "utils_v1.h"
 
 #define SHM_KEY  5
 #define SEM_KEY  6
 #define PERM 0666
 
-// à supprimer ???
-// void initializeSharedMemory();
+Ranking* initializeSharedMemory();
 
 int initializeSemaphores();
 
@@ -22,8 +22,9 @@ int initializeSemaphores(){
     return sem_create(SEM_KEY, 1, 0600, 0);
 }
 
+// erreur avec le nombre d'arguments.. corrigé
 int getSemaphoreID(){
-    return sem_get(SEM_KEY, 1, 0400);
+    return sem_get(SEM_KEY, 1);
 }
 
 //ajouter creation de pipes??
