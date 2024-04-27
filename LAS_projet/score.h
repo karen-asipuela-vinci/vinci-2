@@ -1,22 +1,14 @@
+#ifndef _SCORE_H_
+#define _SCORE_H_
 
-#ifndef _PAYER_H_
-#define _PLAYER_H_
-
-#include "messages.h"
+#include "ranking.h"
 
 #define MAX_PSEUDO 256
-
-
-typedef struct Ranking{
-    Score scores[MAX_PLAYERS];
-    int nbPlayers;
-} Ranking;
-
-
+#define MAX_PLAYERS 4
 
 typedef struct Score
 {
-	char pseudo[MAX_PSEUDO];
+    char pseudo[MAX_PSEUDO];
     int score;
 } Score;
 

@@ -2,6 +2,7 @@
 #define _JEU_H_
 
 #include <stdio.h>
+#include "ranking.h"
 
 #define SIZE_BOARD 20
 #define NUMBER_OF_TILES 40

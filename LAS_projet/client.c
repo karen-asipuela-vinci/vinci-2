@@ -1,5 +1,5 @@
+#include <stdio.h>
 #include "messages.h"
-
 
 int main(int argc, char const *argv[])
 {
@@ -28,11 +28,11 @@ int main(int argc, char const *argv[])
     StructMessage resp;
 
     // inscription du client
-    printf("Bienvenue dans le programe d'inscription au serveur de jeu\n");
-	printf("Pour participer entrez votre nom :\n");
+    printf("Bienvenue dans le programe d'inscription au serveur de jeu Streams\n");
+	printf("Pour participer entrez votre nom/pseudo :\n");
 
     //recuperation du pseudo
-    if(files!=NULL){
+    if(file!=NULL){
         //via le file donné en argument
     strncpy(pseudo, lines[0], MAX_PSEUDO);
             pseudo[MAX_PSEUDO - 1] = '\0';
@@ -49,6 +49,7 @@ int main(int argc, char const *argv[])
 
     sockfd = initSocketClient(SERVER_IP, SERVER_PORT);
     //envoie la requete d'inscription au serveur et attend la reponse
+    // * *msg nécessaire ou juste msg ?
     sendMessageAndReceiveResponse(sockfd, *msg);
 
     //traitement de la reponse reçue du serveur

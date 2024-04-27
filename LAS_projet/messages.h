@@ -1,6 +1,5 @@
 #ifndef _MESSAGES_H_
 #define _MESSAGES_H_
-#include "score.h"
 
 #define SERVER_PORT 9502
 #define SERVER_IP "127.0.0.1" /* localhost */
@@ -15,6 +14,9 @@
 #define FINAL_SCORE 16
 #define CANCEL_GAME 17
 #define FINAL_RANKING 18
+
+#include "score.h"
+#include "ranking.h"
 
 
 /* struct message used between server and client */

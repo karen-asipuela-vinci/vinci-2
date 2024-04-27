@@ -26,6 +26,3 @@ int initializeSemaphores(){
 int getSemaphoreID(){
     return sem_get(SEM_KEY, 1);
 }
-
-//ajouter creation de pipes??
-//RAPPEL deux pipes : un dans chaque sens

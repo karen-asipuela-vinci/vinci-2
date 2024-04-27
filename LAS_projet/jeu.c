@@ -1,14 +1,10 @@
 #include <stdio.h>
 #include "jeu.h"
-#include "utils_v2.h"
+#include "utils_v1.h"
 #include "score.h"
+#include "player.h"
 
 int points[] = {0, 1, 3, 5, 7, 9, 11, 15, 20, 25, 30, 35, 40, 50, 60, 70, 85, 100, 150, 300};
-
-int main(int argc, char const *argv[])
-{
-    return 0;
-}
 
 int* initializeBoard(){
     static int board[SIZE_BOARD];
@@ -21,7 +17,7 @@ int* initializeBoard(){
 
 void displayBoard(int t[]){
 
-for(int i = 0; i < SIZE_BOARD; i++){
+    for(int i = 0; i < SIZE_BOARD; i++){
         printf("%d ", i+1);
     }
     printf("\n");
@@ -32,11 +28,11 @@ for(int i = 0; i < SIZE_BOARD; i++){
     printf("\n");
 }
 
- int placeTile(int t[], int p, int tuile){
+int placeTile(int t[], int p, int tuile){
     //decrementation de l'emplacement 
     p--;
 
-   while(t[p] != 0){
+    while(t[p] != 0){
        p++;
        if(p == SIZE_BOARD){
         p=0;
@@ -68,17 +64,17 @@ int* initializeTiles(){
     return tiles;
 }
 
-int drawRandomTile(int tuiles[]){
+int drawRandomTile(int tiles[]){
     int randomTile = randomIntBetween(0, NUMBER_OF_TILES);
 
     //tant que la tuile est déjà tirée, on en tire une autre
-    while(tuiles[randomTile] == 0){
+    while(tiles[randomTile] == 0){
         randomTile = randomIntBetween(0, NUMBER_OF_TILES);
     }
 
     // on récupère la tuile et on la retire du tableau en la mettant à 0
-    int tile = tuiles[randomTile];
-    tuiles[randomTile] = 0;
+    int tile = tiles[randomTile];
+    tiles[randomTile] = 0;
 
     return tile;
 }
@@ -107,18 +103,19 @@ int calculateScore(int t[]){
 void displayScore(Ranking *ranking){
     printf("Scores finaux\n");
     for(int i = 0; i < ranking->nbPlayers; i++){
-        printf("%d. %s : %d\n", i, ranking->players[i].name, ranking->players[i].score);
+        printf("%d. %s : %d\n", i, ranking->scores[i].pseudo, ranking->scores[i].score);
     }
 }
 
 Ranking *sortRanking(Ranking *ranking){
-    Player temp;
+    // avant= player ??? me parait que c'est Score
+    Score temp;
     for(int i = 0; i < ranking->nbPlayers; i++){
         for(int j = i+1; j < ranking->nbPlayers; j++){
-            if(ranking->players[i].score < ranking->players[j].score){
-                temp = ranking->players[i];
-                ranking->players[i] = ranking->players[j];
-                ranking->players[j] = temp;
+            if(ranking->scores[i].score < ranking->scores[j].score){
+                temp = ranking->scores[i];
+                ranking->scores[i] = ranking->scores[j];
+                ranking->scores[j] = temp;
             }
         }
     }
