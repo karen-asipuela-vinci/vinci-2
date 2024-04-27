@@ -14,6 +14,7 @@
 #define FINISH_GAME 15
 #define FINAL_SCORE 16
 #define CANCEL_GAME 17
+#define FINAL_RANKING 18
 
 
 /* struct message used between server and client */

@@ -112,7 +112,9 @@ int main(int argc, char const *argv[])
         msg.code = FINAL_SCORE;
         sendMessageAndReceiveResponse(sockfd, *msg);
 
-        displayRanking(msg.scores);
+        if(msg.code==RANKING){
+            displayRanking(msg.scores);
+        }
 
         if (lines != NULL) {
         for (size_t i = 0; lines[i] != NULL; ++i) {
