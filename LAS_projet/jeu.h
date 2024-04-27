@@ -51,4 +51,20 @@ int drawRandomTile(int tuiles[]);
  */
 int calculateScore(int t[]);
 
+/** 
+ * Affiche le score d'un joueur
+ * PRE: ranking un pointeur sur une structure Ranking
+ * POST: affiche le score des joueurs sur la sortie standard
+ */
+void displayScore(Ranking *ranking);
+
+/** 
+ * Trie le classement des joueurs
+ * PRE: ranking un pointeur sur une structure Ranking
+ * POST: trie le classement des joueurs par ordre décroissant de score
+ * RES: un pointeur sur une structure Ranking
+ */
+Ranking *sortRanking(Ranking *ranking);
+
+
 #endif

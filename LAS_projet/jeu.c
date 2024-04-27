@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "jeu.h"
-#include "utils_v1.h"
+#include "utils_v2.h"
+#include "score.h"
 
 int points[] = {0, 1, 3, 5, 7, 9, 11, 15, 20, 25, 30, 35, 40, 50, 60, 70, 85, 100, 150, 300};
 
@@ -101,5 +102,26 @@ int calculateScore(int t[]){
     score += points[currentSequenceLength];
 
     return score;
+}
+
+void displayScore(Ranking *ranking){
+    printf("Scores finaux\n");
+    for(int i = 0; i < ranking->nbPlayers; i++){
+        printf("%d. %s : %d\n", i, ranking->players[i].name, ranking->players[i].score);
+    }
+}
+
+Ranking *sortRanking(Ranking *ranking){
+    Player temp;
+    for(int i = 0; i < ranking->nbPlayers; i++){
+        for(int j = i+1; j < ranking->nbPlayers; j++){
+            if(ranking->players[i].score < ranking->players[j].score){
+                temp = ranking->players[i];
+                ranking->players[i] = ranking->players[j];
+                ranking->players[j] = temp;
+            }
+        }
+    }
+    return ranking;
 }
 
