@@ -1,8 +1,11 @@
 #ifndef _NETWORK_H_
 #define _NETWORK_H_
 
+#include <sys/socket.h>
 #include "player.h"
 #include "messages.h"
+#include "utils_v1.h"
+#define BACKLOG 5
 
 
 /** 

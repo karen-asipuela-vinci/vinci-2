@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include "messages.h"
 #include "utils_v1.h"
 
@@ -20,8 +21,8 @@ int main(int argc, char const *argv[])
         perror("Error opening file");
         return 1;
     }
-    int fd = fileno(file);
-    char **lines = readFileToTable(fd);
+    // int fd = fileno(file);
+    // char **lines = readFileToTable(fd);
     fclose(file);
     }
 

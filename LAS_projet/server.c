@@ -40,7 +40,6 @@ void handlePlayerCommunication(Player *player) {
 void childProcess(void *arg) {
     int i = *(int*)arg;
     StructMessage msg;
-    Ranking* scores = NULL;
 
     /* Dans le processus enfant */
     handlePlayerCommunication(&tabPlayers[i]); // Gérer la communication avec le joueur
@@ -75,16 +74,13 @@ void childProcess(void *arg) {
     exit(21);
 }
 
-// pour le test : on doit bloquer le main
-// mettre à 1 pour utiliser le main
-#define TEST 0
-#if TEST == 1
+
 int main(int argc, char const *argv[])
 {
     int sockfd, newsockfd, i;
 	StructMessage msg;
-	int ret;
-	struct pollfd fds[MAX_PLAYERS];
+	//int ret;
+	//struct pollfd fds[MAX_PLAYERS];
     FILE *file = NULL;
     char **lines = NULL;
     Ranking* scores = NULL;
@@ -93,13 +89,13 @@ int main(int argc, char const *argv[])
     //récupère les informations du fichier si il est passé en argument
     if(argc < 2){
         file = fopen(argv[1], "r");
-    if (file == NULL) {
-        perror("Error opening file");
-        return 1;
-    }
-    int fd = fileno(file);
-    char **lines = readFileToTable(fd);
-    fclose(file);
+        if (file == NULL) {
+            perror("Error opening file");
+            return 1;
+        }
+        // int fd = fileno(file);
+        // char **lines = readFileToTable(fd);
+        fclose(file);
     }
 
 	ssigaction(SIGALRM, endServerHandler);
@@ -122,7 +118,13 @@ int main(int argc, char const *argv[])
         newsockfd = saccept(sockfd);
         if (newsockfd > 0)
         {
-            ret = sread(newsockfd, &msg, sizeof(msg));
+           int ret = sread(newsockfd, &msg, sizeof(msg));
+           
+            if (ret == -1)
+            {
+                perror("Erreur lors de la lecture du message");
+                exit(EXIT_FAILURE);
+            }
 
             if (msg.code == INSCRIPTION_REQUEST)
             {
@@ -165,6 +167,11 @@ int main(int argc, char const *argv[])
         *arg = i;
         // Création du processus fils
         pid_t pid = fork_and_run1(childProcess, arg);
+
+        if (pid == -1) {
+            perror("Erreur lors de la création du processus fils");
+            exit(EXIT_FAILURE);
+        }
       
         handlePlayerCommunication(&tabPlayers[i]); // Gérer la communication avec le joueur
       
@@ -174,7 +181,7 @@ int main(int argc, char const *argv[])
     
 
     //GAME PART
-	int nbPlayersAlreadyPlayed = 0;
+	// int nbPlayersAlreadyPlayed = 0;
     int nbTurnsPlayed = 0;
     int currentTuile;
     int* tuiles = initializeTiles();
@@ -270,5 +277,3 @@ int main(int argc, char const *argv[])
 
     return 0;
 }
-
-#endif
