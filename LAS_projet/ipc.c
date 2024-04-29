@@ -2,6 +2,8 @@
 #include "player.h"
 #include "utils_v1.h"
 #include "messages.h"
+#include <sys/sem.h>
+#include <stdlib.h>
 
 Ranking* initializeSharedMemory(){
     int shm_id = sshmget(SHM_KEY, sizeof(Ranking), IPC_CREAT | PERM);
@@ -16,5 +18,11 @@ int initializeSemaphores(){
 
 // erreur avec le nombre d'arguments.. corrigé
 int getSemaphoreID(){
-    return sem_get(SEM_KEY, 1);
+    int semflg = IPC_CREAT | 0400; // Droits de lecture
+    int sem_id = semget(SEM_KEY, 1, semflg);
+    if (sem_id == -1) {
+    perror("Erreur lors de la création du sémaphore");
+    exit(EXIT_FAILURE);
+}
+return sem_id;
 }

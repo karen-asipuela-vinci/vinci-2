@@ -18,12 +18,12 @@ int* initializeBoard(){
 void displayBoard(int t[]){
 
     for(int i = 0; i < SIZE_BOARD; i++){
-        printf("%d ", i+1);
+        printf("%2d ", i + 1);
     }
     printf("\n");
 
     for(int i = 0; i < SIZE_BOARD; i++){
-        printf("%d ", t[i]);
+        printf("%2d ", t[i]);
     }
     printf("\n");
 }
