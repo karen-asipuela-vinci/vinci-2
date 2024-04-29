@@ -28,8 +28,8 @@ void handlePlayerCommunication(Player *player)
 
     // Child process
     // Close unused ends of the pipes
-    int closeChild1 = sclose(player->pipefd_read[1]);  // Close write end of read pipe
-    int closeChild2 = sclose(player->pipefd_write[0]); // Close read end of write pipe
+    int closeChild1 = sclose(player->pipefd_read[0]);  // Close write end of read pipe
+    int closeChild2 = sclose(player->pipefd_write[1]); // Close read end of write pipe
 
     if (closeChild1 == -1 || closeChild2 == -1)
     {
@@ -45,11 +45,12 @@ void childProcess(void *arg)
     handlePlayerCommunication(&tabPlayers[i]); // Gérer la communication avec le joueur
 
     // arrete de passer dans la boucle apres avoir gere le message de fin de partie
-    while (msg.code != FINISH_GAME)
+    while (msg.code != FINAL_SCORE)
     {
         // recuperation du message envoyé par le serveur
         printf("lit info serveur\n");
         int read = sread(tabPlayers[i].pipefd_read[0], &msg, sizeof(msg));
+        printf("message recu: %d\n", msg.code);
         if (read == -1)
         {
             perror("Erreur lors de la lecture du message du serveur");
@@ -67,6 +68,7 @@ void childProcess(void *arg)
 
     // recupere le semaphore
     int sem = getSemaphoreID();
+    printf("semaphore id - server.c: %d\n", sem);
     // down sur le semaphore
     sem_down(sem, 0);
     // recupere les scores quand il a acces a la memoire partagée
@@ -87,13 +89,10 @@ void childProcess(void *arg)
 
 int main(int argc, char const *argv[])
 {
-    int sockfd, newsockfd, i;
+    int newsockfd;
     StructMessage msg;
-    int ret;
-    // struct pollfd fds[MAX_PLAYERS];
     FILE *file = NULL;
     char **lines = NULL;
-    Ranking *scores = NULL;
     int port = atoi(argv[1]);
 
     // récupère les informations du fichier si il est passé en argument
@@ -113,24 +112,27 @@ int main(int argc, char const *argv[])
     ssigaction(SIGALRM, endServerHandler);
     ssigaction(SIGINT, endServerHandler);
 
-    sockfd = initSocketServer(port);
+    int sockfd = initSocketServer(port);
     printf("Le serveur tourne sur le port : %i \n", port);
 
     // initialisation de la mémoire partagée
-    scores = initializeSharedMemory();
+    Ranking *scores = initializeSharedMemory();
     int sem = initializeSemaphores();
+    printf("Initialisation de la mémoire partagée et des sémaphores\n");
+    printf("semaphore id: %d\n", sem);
 
-    i = 0;
+    int i = 0;
     int nbPlayers = 0;
 
     // INSCRIPTION PART
     alarm(TIME_INSCRIPTION);
+
     while (!end_inscriptions && nbPlayers < MAX_PLAYERS)
     {
         newsockfd = accept(sockfd, NULL, NULL);
         if (newsockfd > 0)
         {
-            ret = sread(newsockfd, &msg, sizeof(msg));
+            int ret = sread(newsockfd, &msg, sizeof(msg));
 
             if (ret == -1)
             {
@@ -158,20 +160,29 @@ int main(int argc, char const *argv[])
                     msg.code = INSCRIPTION_KO;
                     swrite(tabPlayers[i].sockfd, &msg, sizeof(msg));
                 }
-
                 // Création des pipes bidirectionnels pour la communication avec le serveur fils
-                int pipefd[2];
-                int pipefd2[2];
-                if ((spipe(pipefd) == -1) || (spipe(pipefd2) == -1))
+                int pipefd_read[2];
+                int pipefd_write[2];
+
+                // Création du pipe de lecture
+                if (spipe(pipefd_read) == -1)
                 {
-                    perror("Erreur lors de la création des pipes");
+                    perror("Erreur lors de la création du pipe de lecture");
                     exit(EXIT_FAILURE);
                 }
 
-                tabPlayers[i].pipefd_read[0] = pipefd[0];
-                tabPlayers[i].pipefd_read[1] = pipefd[1];
-                tabPlayers[i].pipefd_write[0] = pipefd2[0];
-                tabPlayers[i].pipefd_write[1] = pipefd2[1];
+                // Création du pipe d'écriture
+                if (spipe(pipefd_write) == -1)
+                {
+                    perror("Erreur lors de la création du pipe d'écriture");
+                    exit(EXIT_FAILURE);
+                }
+
+                // Stockage des descripteurs de fichier des pipes dans la structure du joueur
+                tabPlayers[i].pipefd_read[0] = pipefd_read[0];
+                tabPlayers[i].pipefd_read[1] = pipefd_read[1];
+                tabPlayers[i].pipefd_write[0] = pipefd_write[0];
+                tabPlayers[i].pipefd_write[1] = pipefd_write[1];
 
                 nbPlayers++;
                 printf("Nb Inscriptions : %i\n", nbPlayers);
@@ -214,8 +225,20 @@ int main(int argc, char const *argv[])
             exit(EXIT_FAILURE);
         }
 
-        int close1 = sclose(tabPlayers[i].pipefd_read[0]);  // Fermer l'extrémité de lecture du pipe de lecture
-        int close2 = sclose(tabPlayers[i].pipefd_write[1]); // Fermer l'extrémité d'écriture du pipe d'écriture
+        /*
+        pipe d'écriture = parent -> enfant :
+            - parent ferme le côté lecture car ne l'utilise pas // pipefd_write[0]
+            - enfant ferme le côté écriture car ne l'utilise pas // pipefd_write[1]
+        pipe de lecture = enfant -> parent :
+            - parent ferme le côté écriture car ne l'utilise pas // pipefd_read[1]
+            - enfant ferme le côté lecture car ne l'utilise pas // pipefd_read[0]
+        */
+
+        // dans processus fils :
+        // int closeChild1 = sclose(player->pipefd_read[0]);  // Close write end of read pipe
+        // int closeChild2 = sclose(player->pipefd_write[1]); // Close read end of write pipe
+        int close1 = sclose(tabPlayers[i].pipefd_read[1]);  // Fermeture du côté lecture du pipe
+        int close2 = sclose(tabPlayers[i].pipefd_write[0]); // Fermeture du côté écriture du pipe
         if (close1 == -1 || close2 == -1)
         {
             perror("Erreur lors de la fermeture des extrémités de pipe");
