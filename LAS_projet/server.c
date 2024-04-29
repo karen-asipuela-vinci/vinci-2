@@ -28,8 +28,14 @@ void handlePlayerCommunication(Player *player)
 
     // Child process
     // Close unused ends of the pipes
-    sclose(player->pipefd_read[1]);  // Close write end of read pipe
-    sclose(player->pipefd_write[0]); // Close read end of write pipe
+    int closeChild1 = sclose(player->pipefd_read[1]);  // Close write end of read pipe
+    int closeChild2 = sclose(player->pipefd_write[0]); // Close read end of write pipe
+
+    if (closeChild1 == -1 || closeChild2 == -1)
+    {
+        perror("Erreur lors de la fermeture des extrémités de pipe - enfants");
+        exit(EXIT_FAILURE);
+    }
 }
 
 void childProcess(void *arg)
@@ -43,7 +49,12 @@ void childProcess(void *arg)
     {
         // recuperation du message envoyé par le serveur
         printf("lit info serveur\n");
-        sread(tabPlayers[i].pipefd_read[0], &msg, sizeof(msg));
+        int read = sread(tabPlayers[i].pipefd_read[0], &msg, sizeof(msg));
+        if (read == -1)
+        {
+            perror("Erreur lors de la lecture du message du serveur");
+            exit(EXIT_FAILURE);
+        }
 
         // envoi du message au client et attente de la réponse
         printf("comm client\n");
@@ -181,7 +192,12 @@ int main(int argc, char const *argv[])
             sendMessageAndReceiveResponse(tabPlayers[i].sockfd, &msg);
         }
         disconnect_players(tabPlayers, nbPlayers);
-        sclose(sockfd);
+        int closeSock = sclose(sockfd);
+        if (closeSock == -1)
+        {
+            perror("Erreur lors de la fermeture du socket");
+            exit(EXIT_FAILURE);
+        }
         exit(0);
     }
 
@@ -198,8 +214,13 @@ int main(int argc, char const *argv[])
             exit(EXIT_FAILURE);
         }
 
-        sclose(tabPlayers[i].pipefd_read[0]);  // Fermer l'extrémité de lecture du pipe de lecture
-        sclose(tabPlayers[i].pipefd_write[1]); // Fermer l'extrémité d'écriture du pipe d'écriture
+        int close1 = sclose(tabPlayers[i].pipefd_read[0]);  // Fermer l'extrémité de lecture du pipe de lecture
+        int close2 = sclose(tabPlayers[i].pipefd_write[1]); // Fermer l'extrémité d'écriture du pipe d'écriture
+        if (close1 == -1 || close2 == -1)
+        {
+            perror("Erreur lors de la fermeture des extrémités de pipe");
+            exit(EXIT_FAILURE);
+        }
     }
 
     // GAME PART
@@ -212,11 +233,13 @@ int main(int argc, char const *argv[])
     for (i = 0; i < nbPlayers; i++)
     {
         poll_fds[i].fd = tabPlayers[i].pipefd_read[0]; // le pipe d'écriture du processus enfant
-        poll_fds[i].events = POLLIN;                   // Surveiller les événements d'écriture
+        poll_fds[i].events = POLLIN;
+        poll_fds[i].revents = 0;
     }
 
-    while (nbTurnsPlayed < 20)
+    while (nbTurnsPlayed < 21)
     {
+        printf("!!!!!!!!!!!!!!!20!!!!!!!!!!!!!!");
         // PICK A TILE
         // in the given file
         if (file != NULL)
@@ -243,23 +266,40 @@ int main(int argc, char const *argv[])
 
         // TODO polls
         bool playersSentPosition[MAX_PLAYERS] = {false};
+        printf("playersSentPosition: %d\n", playersSentPosition[0]);
         int numPlayersReady = 0;
 
         // Attendre que tous les joueurs confirment qu'ils ont reçu la tuile actuelle
         while (numPlayersReady < nbPlayers)
         {
             int poll_result = spoll(poll_fds, nbPlayers, 0);
+            printf("poll result: %d\n", poll_result);
             if (poll_result > 0)
             {
+                printf("/////////////////////////");
+                // !ATTENTION A PARTIR D'ICI
                 for (i = 0; i < nbPlayers; i++)
                 {
-                    // Un des processus enfants a envoyé un message
-                    // et le joueur n'a pas encore envoyé sa position pour ce tour
-                    if ((poll_fds[i].revents & POLLIN) && !playersSentPosition[i])
-                    {
 
-                        printf("on va loinnn\n");
-                        sread(tabPlayers[i].pipefd_read[0], &msg, sizeof(msg));
+                    printf("i: %d\n", i);
+                    printf("poll_fd: %d\n", poll_fds[i].fd);
+                    //*check si pollhup
+                    if (poll_fds[i].revents & POLLHUP)
+                    {
+                        printf("Déconnexion détectée sur le descripteur de fichier: %d\n", poll_fds[i].fd);
+                        printf("Player %d disconnected\n", i);
+                    }
+                    //! rajouter !playersSentPosition[i]
+                    //*check si pollin
+                    else if (poll_fds[i].revents & POLLIN)
+                    {
+                        printf("POLLIN défini, données dispo en lecture\n");
+                        int read = sread(tabPlayers[i].pipefd_read[0], &msg, sizeof(msg));
+                        if (read == -1)
+                        {
+                            perror("Erreur lors de la lecture du message du serveur");
+                            exit(EXIT_FAILURE);
+                        }
                         // traitez la position de tuile recue du serveur fils
                         if (msg.code == FINISHED_PLAYING)
                         {
@@ -267,6 +307,10 @@ int main(int argc, char const *argv[])
                             playersSentPosition[i] = true;
                             numPlayersReady++;
                         }
+                    }
+                    else if (poll_fds[i].revents && POLLERR)
+                    {
+                        printf("Erreur détectée sur le descripteur de fichier: %d\n", poll_fds[i].fd);
                     }
                 }
             }
@@ -276,46 +320,53 @@ int main(int argc, char const *argv[])
                 printf("keske jfous la\n");
             }
 
+            numPlayersReady++;
+
             for (i = 0; i < MAX_PLAYERS; i++)
             {
                 playersSentPosition[i] = false;
             }
             nbTurnsPlayed++;
         }
-
-        // END OF GAME PART
-        msg.code = FINISH_GAME;
-        for (i = 0; i < nbPlayers; i++)
-        {
-            nwrite(tabPlayers[i].pipefd_read[1], &msg, sizeof(msg));
-        }
-
-        // TRI DES SCORES
-        Ranking *sortedRanking = sortRanking(scores);
-        // rend accès à la mémoire partagée
-        sem_up(sem, 0);
-
-        // liberation des différentes ressources a la fin du programme
-        for (i = 0; i < nbPlayers; i++)
-        {
-            sclose(tabPlayers[i].pipefd_read[0]);  // Fermeture du côté lecture du pipe
-            sclose(tabPlayers[i].pipefd_write[1]); // Fermeture du côté écriture du pipe
-        }
-
-        if (lines != NULL)
-        {
-            for (size_t i = 0; lines[i] != NULL; ++i)
-            {
-                free(lines[i]);
-            }
-            free(lines);
-        }
-
-        disconnect_players(tabPlayers, nbPlayers);
-        sclose(sockfd);
-        // TODO : check si bien FINAL_RANKING ou RANKING ???
-        sshmdt(sortedRanking);
-
-        return 0;
     }
+    // END OF GAME PART
+    msg.code = FINISH_GAME;
+    for (i = 0; i < nbPlayers; i++)
+    {
+        nwrite(tabPlayers[i].pipefd_read[1], &msg, sizeof(msg));
+    }
+
+    // TRI DES SCORES
+    Ranking *sortedRanking = sortRanking(scores);
+    // rend accès à la mémoire partagée
+    sem_up(sem, 0);
+
+    // liberation des différentes ressources a la fin du programme
+    for (i = 0; i < nbPlayers; i++)
+    {
+        int close1 = sclose(tabPlayers[i].pipefd_read[0]);  // Fermeture du côté lecture du pipe
+        int close2 = sclose(tabPlayers[i].pipefd_write[1]); // Fermeture du côté écriture du pipe
+
+        if (close1 == -1 || close2 == -1)
+        {
+            perror("Erreur lors de la fermeture des extrémités de pipe");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    if (lines != NULL)
+    {
+        for (size_t i = 0; lines[i] != NULL; ++i)
+        {
+            free(lines[i]);
+        }
+        free(lines);
+    }
+
+    disconnect_players(tabPlayers, nbPlayers);
+    sclose(sockfd);
+    // TODO : check si bien FINAL_RANKING ou RANKING ???
+    sshmdt(sortedRanking);
+
+    return 0;
 }
