@@ -4,8 +4,7 @@
 #include "player.h"
 #include "messages.h"
 
-
-/** 
+/**
  * PRE:  serverIP: a valid IP address
  *      serverPort: a valid port number
  * POST: on success, connects to serverIP:serverPort and returns the socket file descriptor ;
@@ -13,18 +12,18 @@
  */
 
 int initSocketClient(char *serverIP, int serverPort);
-/** 
+/**
  * PRE:  sockfd: a valid socket file descriptor
  *       msg: a valid StructMessage
  * POST: sends msg to sockfd and receives response
-*/
+ */
 
 void sendMessageAndReceiveResponse(int sockfd, StructMessage *msg);
-/** 
+/**
  * PRE:  tabPlayers: a valid array of Player
  *      nbPlayers: the number of players in tabPlayers
  * POST: disconnects all players in tabPlayers
-*/
+ */
 
 void disconnect_players(Player *tabPlayers, int nbPlayers);
 /**

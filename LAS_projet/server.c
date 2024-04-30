@@ -26,14 +26,19 @@ void endServerHandler(int sig)
 void handlePlayerCommunication(Player *player)
 {
 
-    // Child process
+    /// Child process
     // Close unused ends of the pipes
-    int closeChild1 = sclose(player->pipefd_read[0]);  // Close write end of read pipe
-    int closeChild2 = sclose(player->pipefd_write[1]); // Close read end of write pipe
-
-    if (closeChild1 == -1 || closeChild2 == -1)
+    int closeChild1 = sclose(player->pipefd_read[1]); // Close write end of read pipe
+    if (closeChild1 == -1)
     {
-        perror("Erreur lors de la fermeture des extrémités de pipe - enfants");
+        perror("Erreur lors de la fermeture de l'extrémité d'écriture du pipe de lecture - enfant");
+        exit(EXIT_FAILURE);
+    }
+
+    int closeChild2 = sclose(player->pipefd_write[0]); // Close read end of write pipe
+    if (closeChild2 == -1)
+    {
+        perror("Erreur lors de la fermeture de l'extrémité de lecture du pipe d'écriture - enfant");
         exit(EXIT_FAILURE);
     }
 }
@@ -49,13 +54,7 @@ void childProcess(void *arg)
     {
         // recuperation du message envoyé par le serveur
         printf("lit info serveur\n");
-        int read = sread(tabPlayers[i].pipefd_read[0], &msg, sizeof(msg));
-        printf("message recu: %d\n", msg.code);
-        if (read == -1)
-        {
-            perror("Erreur lors de la lecture du message du serveur");
-            exit(EXIT_FAILURE);
-        }
+        sread(tabPlayers[i].pipefd_read[0], &msg, sizeof(msg));
 
         // envoi du message au client et attente de la réponse
         printf("comm client\n");
@@ -237,11 +236,17 @@ int main(int argc, char const *argv[])
         // dans processus fils :
         // int closeChild1 = sclose(player->pipefd_read[0]);  // Close write end of read pipe
         // int closeChild2 = sclose(player->pipefd_write[1]); // Close read end of write pipe
-        int close1 = sclose(tabPlayers[i].pipefd_read[1]);  // Fermeture du côté lecture du pipe
-        int close2 = sclose(tabPlayers[i].pipefd_write[0]); // Fermeture du côté écriture du pipe
-        if (close1 == -1 || close2 == -1)
+        int close1 = sclose(tabPlayers[i].pipefd_read[0]); // Fermeture du côté lecture du pipe
+        if (close1 == -1)
         {
-            perror("Erreur lors de la fermeture des extrémités de pipe");
+            perror("Erreur lors de la fermeture du côté lecture du pipe");
+            exit(EXIT_FAILURE);
+        }
+
+        int close2 = sclose(tabPlayers[i].pipefd_write[1]); // Fermeture du côté écriture du pipe
+        if (close2 == -1)
+        {
+            perror("Erreur lors de la fermeture du côté écriture du pipe");
             exit(EXIT_FAILURE);
         }
     }
@@ -255,7 +260,7 @@ int main(int argc, char const *argv[])
     // Initialiser les structures pollfd pour surveiller les pipes d'écriture des processus enfants
     for (i = 0; i < nbPlayers; i++)
     {
-        poll_fds[i].fd = tabPlayers[i].pipefd_read[0]; // le pipe d'écriture du processus enfant
+        poll_fds[i].fd = tabPlayers[i].pipefd_write[0]; // le pipe d'écriture du processus enfant
         poll_fds[i].events = POLLIN;
         poll_fds[i].revents = 0;
     }
@@ -295,61 +300,49 @@ int main(int argc, char const *argv[])
         // Attendre que tous les joueurs confirment qu'ils ont reçu la tuile actuelle
         while (numPlayersReady < nbPlayers)
         {
-            int poll_result = spoll(poll_fds, nbPlayers, 0);
+            int poll_result = spoll(poll_fds, nbPlayers, 1000);
             printf("poll result: %d\n", poll_result);
             if (poll_result > 0)
             {
-                printf("/////////////////////////");
-                // !ATTENTION A PARTIR D'ICI
+                printf("in poll result\n");
                 for (i = 0; i < nbPlayers; i++)
                 {
-
-                    printf("i: %d\n", i);
-                    printf("poll_fd: %d\n", poll_fds[i].fd);
-                    //*check si pollhup
-                    if (poll_fds[i].revents & POLLHUP)
+                    printf("in for\n");
+                    if (poll_fds[i].revents & POLLIN && !playersSentPosition[i])
                     {
-                        printf("Déconnexion détectée sur le descripteur de fichier: %d\n", poll_fds[i].fd);
-                        printf("Player %d disconnected\n", i);
-                    }
-                    //! rajouter !playersSentPosition[i]
-                    //*check si pollin
-                    else if (poll_fds[i].revents & POLLIN)
-                    {
-                        printf("POLLIN défini, données dispo en lecture\n");
-                        int read = sread(tabPlayers[i].pipefd_read[0], &msg, sizeof(msg));
-                        if (read == -1)
+                        printf("in pollin\n");
+                        int read_size = sread(tabPlayers[i].pipefd_write[0], &msg, sizeof(msg));
+                        printf("msg.code: %d\n", msg.code);
+                        if (read_size == -1)
                         {
                             perror("Erreur lors de la lecture du message du serveur");
                             exit(EXIT_FAILURE);
                         }
-                        // traitez la position de tuile recue du serveur fils
                         if (msg.code == FINISHED_PLAYING)
                         {
-                            // Marquez le joueur comme ayant envoyé sa position pour ce tour
+                            printf("in finished playing\n");
                             playersSentPosition[i] = true;
                             numPlayersReady++;
                         }
                     }
-                    else if (poll_fds[i].revents && POLLERR)
-                    {
-                        printf("Erreur détectée sur le descripteur de fichier: %d\n", poll_fds[i].fd);
-                    }
                 }
             }
-            else
+            else if (poll_result == -1)
             {
-                // gerer l'erreur
-                printf("keske jfous la\n");
+                perror("Erreur lors du poll");
+                exit(EXIT_FAILURE);
+            }
+            else if (poll_result == 0)
+            {
+                printf("Timeout\n");
+                break;
             }
 
-            numPlayersReady++;
-
-            for (i = 0; i < MAX_PLAYERS; i++)
+            // Réinitialisation de playersSentPosition à false pour le prochain tour
+            for (i = 0; i < nbPlayers; i++)
             {
                 playersSentPosition[i] = false;
             }
-            nbTurnsPlayed++;
         }
     }
     // END OF GAME PART
@@ -367,12 +360,17 @@ int main(int argc, char const *argv[])
     // liberation des différentes ressources a la fin du programme
     for (i = 0; i < nbPlayers; i++)
     {
-        int close1 = sclose(tabPlayers[i].pipefd_read[0]);  // Fermeture du côté lecture du pipe
-        int close2 = sclose(tabPlayers[i].pipefd_write[1]); // Fermeture du côté écriture du pipe
-
-        if (close1 == -1 || close2 == -1)
+        int close1 = sclose(tabPlayers[i].pipefd_read[0]); // Fermeture du côté lecture du pipe
+        if (close1 == -1)
         {
-            perror("Erreur lors de la fermeture des extrémités de pipe");
+            perror("Erreur lors de la fermeture du côté lecture du pipe");
+            exit(EXIT_FAILURE);
+        }
+
+        int close2 = sclose(tabPlayers[i].pipefd_write[1]); // Fermeture du côté écriture du pipe
+        if (close2 == -1)
+        {
+            perror("Erreur lors de la fermeture du côté écriture du pipe");
             exit(EXIT_FAILURE);
         }
     }
@@ -387,7 +385,13 @@ int main(int argc, char const *argv[])
     }
 
     disconnect_players(tabPlayers, nbPlayers);
-    sclose(sockfd);
+    int okclose = sclose(sockfd);
+
+    if (okclose == -1)
+    {
+        perror("Erreur lors de la fermeture du socket, ligne 405");
+        exit(EXIT_FAILURE);
+    }
     // TODO : check si bien FINAL_RANKING ou RANKING ???
     sshmdt(sortedRanking);
 
