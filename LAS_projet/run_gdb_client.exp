@@ -1,0 +1,14 @@
+#!/usr/bin/expect -f
+
+set timeout -1
+set cmd [lindex $argv 0]
+set client [lindex $argv 1]
+set port [lindex $argv 2]
+set file [lindex $argv 3]
+
+spawn $cmd $client
+
+expect "(gdb)"
+send "run $port < $file\r"
+
+interact

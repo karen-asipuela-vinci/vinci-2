@@ -6,8 +6,6 @@
 
 #define BACKLOG 5
 
-
-
 int initSocketClient(char *serverIP, int serverPort)
 {
     int sockfd = ssocket();
@@ -15,7 +13,8 @@ int initSocketClient(char *serverIP, int serverPort)
     return sockfd;
 }
 
-void sendMessageAndReceiveResponse(int sockfd, StructMessage *msg) {
+void sendMessageAndReceiveResponse(int sockfd, StructMessage *msg)
+{
     swrite(sockfd, msg, sizeof(*msg));
     sread(sockfd, msg, sizeof(*msg));
 }

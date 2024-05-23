@@ -13,7 +13,7 @@
 #define MAX_PLAYERS 4
 #define MIN_PLAYERS 2
 // TODO PUT 30
-#define TIME_INSCRIPTION 20
+#define TIME_INSCRIPTION 5
 
 Player tabPlayers[MAX_PLAYERS];
 volatile sig_atomic_t end_inscriptions = 0;
@@ -26,72 +26,70 @@ void endServerHandler(int sig)
 void handlePlayerCommunication(Player *player)
 {
 
-    /// Child process
+    // Child process
     // Close unused ends of the pipes
-    int closeChild1 = sclose(player->pipefd_read[1]); // Close write end of read pipe
-    if (closeChild1 == -1)
-    {
-        perror("Erreur lors de la fermeture de l'extrémité d'écriture du pipe de lecture - enfant");
-        exit(EXIT_FAILURE);
-    }
-
-    int closeChild2 = sclose(player->pipefd_write[0]); // Close read end of write pipe
-    if (closeChild2 == -1)
-    {
-        perror("Erreur lors de la fermeture de l'extrémité de lecture du pipe d'écriture - enfant");
-        exit(EXIT_FAILURE);
-    }
+    sclose(player->pipefd_read[1]);  // Close write end of read pipe
+    sclose(player->pipefd_write[0]); // Close read end of write pipe
 }
 
 void childProcess(void *arg)
 {
     int i = *(int *)arg;
     StructMessage msg;
+    msg.scores = malloc(sizeof(Ranking));
     handlePlayerCommunication(&tabPlayers[i]); // Gérer la communication avec le joueur
 
     // arrete de passer dans la boucle apres avoir gere le message de fin de partie
     while (msg.code != FINAL_SCORE)
     {
         // recuperation du message envoyé par le serveur
-        printf("lit info serveur\n");
         sread(tabPlayers[i].pipefd_read[0], &msg, sizeof(msg));
-
         // envoi du message au client et attente de la réponse
-        printf("comm client\n");
         sendMessageAndReceiveResponse(tabPlayers[i].sockfd, &msg);
         // envoi de la réponse du client au serveur
-        printf("envoie reponse au serveur\n");
         nwrite(tabPlayers[i].pipefd_write[1], &msg, sizeof(msg));
-        printf("fin de serv-fils-serv\n");
     }
+    nwrite(tabPlayers[i].pipefd_write[1], &msg, sizeof(msg));
+    printf("nbPlayers 100 : %d\n", msg.scores->nbPlayers);
 
     // recupere le semaphore
     int sem = getSemaphoreID();
-    printf("semaphore id - server.c: %d\n", sem);
     // down sur le semaphore
-    sem_down(sem, 0);
+    sem_down0(sem);
     // recupere les scores quand il a acces a la memoire partagée
     int shm_id = sshmget(SHM_KEY, sizeof(Ranking), 0);
-    Ranking *ranking = (Ranking *)sshmat(shm_id);
+    Ranking *rankingSHM = (Ranking *)sshmat(shm_id);
+    printf("DANS LE PROCESSUS FILS - memoire partagée\n");
+    printf("NOMBRE DE JOUEURS DANS SHM - FILS : %d\n", rankingSHM->nbPlayers);
+    printf("SCORES DU JOUEUR %s : %d\n", rankingSHM->scores[0].pseudo, rankingSHM->scores[0].score);
+
     // rend l'accès à la mémoire partagée
     sem_up(sem, 0);
 
+    printf("ENVOI DU RANKING AU CLIENT---------------------------------\n");
     // envoi du ranking final au client
     msg.code = FINAL_RANKING;
-    msg.scores = ranking;
-    swrite(tabPlayers[i].sockfd, &msg, sizeof(&msg));
-
+    memcpy(msg.scores, rankingSHM, sizeof(Ranking));
+    printf("nbPlayers : %d\n", msg.scores->nbPlayers);
+    printf("score de %d : %d\n", i, msg.scores->scores[i].score);
+    sendMessageAndReceiveResponse(tabPlayers[i].sockfd, &msg);
+    if (msg.code == FINAL_RANKING)
+    {
+        printf("message envoyé\n");
+    }
     free(arg);
-
     exit(21);
 }
 
 int main(int argc, char const *argv[])
 {
-    int newsockfd;
+    int sockfd, newsockfd, i;
     StructMessage msg;
+    int ret;
+    // struct pollfd fds[MAX_PLAYERS];
     FILE *file = NULL;
     char **lines = NULL;
+    Ranking *scores = NULL;
     int port = atoi(argv[1]);
 
     // récupère les informations du fichier si il est passé en argument
@@ -111,27 +109,30 @@ int main(int argc, char const *argv[])
     ssigaction(SIGALRM, endServerHandler);
     ssigaction(SIGINT, endServerHandler);
 
-    int sockfd = initSocketServer(port);
+    sockfd = initSocketServer(port);
     printf("Le serveur tourne sur le port : %i \n", port);
 
     // initialisation de la mémoire partagée
-    Ranking *scores = initializeSharedMemory();
-    int sem = initializeSemaphores();
-    printf("Initialisation de la mémoire partagée et des sémaphores\n");
-    printf("semaphore id: %d\n", sem);
+    scores = initializeSharedMemory();
+    if (scores == NULL)
+    {
+        perror("Erreur lors de l'initialisation de la mémoire partagée");
+        exit(EXIT_FAILURE);
+    }
 
-    int i = 0;
+    int sem = initializeSemaphores();
+
+    i = 0;
     int nbPlayers = 0;
 
     // INSCRIPTION PART
     alarm(TIME_INSCRIPTION);
-
     while (!end_inscriptions && nbPlayers < MAX_PLAYERS)
     {
         newsockfd = accept(sockfd, NULL, NULL);
         if (newsockfd > 0)
         {
-            int ret = sread(newsockfd, &msg, sizeof(msg));
+            ret = sread(newsockfd, &msg, sizeof(msg));
 
             if (ret == -1)
             {
@@ -159,29 +160,20 @@ int main(int argc, char const *argv[])
                     msg.code = INSCRIPTION_KO;
                     swrite(tabPlayers[i].sockfd, &msg, sizeof(msg));
                 }
+
                 // Création des pipes bidirectionnels pour la communication avec le serveur fils
-                int pipefd_read[2];
-                int pipefd_write[2];
-
-                // Création du pipe de lecture
-                if (spipe(pipefd_read) == -1)
+                int pipefd[2];
+                int pipefd2[2];
+                if ((spipe(pipefd) == -1) || (spipe(pipefd2) == -1))
                 {
-                    perror("Erreur lors de la création du pipe de lecture");
+                    perror("Erreur lors de la création des pipes");
                     exit(EXIT_FAILURE);
                 }
 
-                // Création du pipe d'écriture
-                if (spipe(pipefd_write) == -1)
-                {
-                    perror("Erreur lors de la création du pipe d'écriture");
-                    exit(EXIT_FAILURE);
-                }
-
-                // Stockage des descripteurs de fichier des pipes dans la structure du joueur
-                tabPlayers[i].pipefd_read[0] = pipefd_read[0];
-                tabPlayers[i].pipefd_read[1] = pipefd_read[1];
-                tabPlayers[i].pipefd_write[0] = pipefd_write[0];
-                tabPlayers[i].pipefd_write[1] = pipefd_write[1];
+                tabPlayers[i].pipefd_read[0] = pipefd[0];
+                tabPlayers[i].pipefd_read[1] = pipefd[1];
+                tabPlayers[i].pipefd_write[0] = pipefd2[0];
+                tabPlayers[i].pipefd_write[1] = pipefd2[1];
 
                 nbPlayers++;
                 printf("Nb Inscriptions : %i\n", nbPlayers);
@@ -202,12 +194,7 @@ int main(int argc, char const *argv[])
             sendMessageAndReceiveResponse(tabPlayers[i].sockfd, &msg);
         }
         disconnect_players(tabPlayers, nbPlayers);
-        int closeSock = sclose(sockfd);
-        if (closeSock == -1)
-        {
-            perror("Erreur lors de la fermeture du socket");
-            exit(EXIT_FAILURE);
-        }
+        sclose(sockfd);
         exit(0);
     }
 
@@ -224,31 +211,8 @@ int main(int argc, char const *argv[])
             exit(EXIT_FAILURE);
         }
 
-        /*
-        pipe d'écriture = parent -> enfant :
-            - parent ferme le côté lecture car ne l'utilise pas // pipefd_write[0]
-            - enfant ferme le côté écriture car ne l'utilise pas // pipefd_write[1]
-        pipe de lecture = enfant -> parent :
-            - parent ferme le côté écriture car ne l'utilise pas // pipefd_read[1]
-            - enfant ferme le côté lecture car ne l'utilise pas // pipefd_read[0]
-        */
-
-        // dans processus fils :
-        // int closeChild1 = sclose(player->pipefd_read[0]);  // Close write end of read pipe
-        // int closeChild2 = sclose(player->pipefd_write[1]); // Close read end of write pipe
-        int close1 = sclose(tabPlayers[i].pipefd_read[0]); // Fermeture du côté lecture du pipe
-        if (close1 == -1)
-        {
-            perror("Erreur lors de la fermeture du côté lecture du pipe");
-            exit(EXIT_FAILURE);
-        }
-
-        int close2 = sclose(tabPlayers[i].pipefd_write[1]); // Fermeture du côté écriture du pipe
-        if (close2 == -1)
-        {
-            perror("Erreur lors de la fermeture du côté écriture du pipe");
-            exit(EXIT_FAILURE);
-        }
+        sclose(tabPlayers[i].pipefd_read[0]);  // Fermer l'extrémité de lecture du pipe de lecture
+        sclose(tabPlayers[i].pipefd_write[1]); // Fermer l'extrémité d'écriture du pipe d'écriture
     }
 
     // GAME PART
@@ -261,13 +225,11 @@ int main(int argc, char const *argv[])
     for (i = 0; i < nbPlayers; i++)
     {
         poll_fds[i].fd = tabPlayers[i].pipefd_write[0]; // le pipe d'écriture du processus enfant
-        poll_fds[i].events = POLLIN;
-        poll_fds[i].revents = 0;
+        poll_fds[i].events = POLLIN;                    // Surveiller les événements d'écriture
     }
 
-    while (nbTurnsPlayed < 21)
+    while (nbTurnsPlayed < 20)
     {
-        printf("!!!!!!!!!!!!!!!20!!!!!!!!!!!!!!");
         // PICK A TILE
         // in the given file
         if (file != NULL)
@@ -287,64 +249,51 @@ int main(int argc, char const *argv[])
 
         for (i = 0; i < nbPlayers; i++)
         {
-            printf("meow\n");
             nwrite(tabPlayers[i].pipefd_read[1], &msg, sizeof(msg));
-            printf("coin\n");
         }
 
         // TODO polls
-        bool playersSentPosition[MAX_PLAYERS] = {false};
-        printf("playersSentPosition: %d\n", playersSentPosition[0]);
+        // bool playersSentPosition[MAX_PLAYERS] = {false};
         int numPlayersReady = 0;
 
         // Attendre que tous les joueurs confirment qu'ils ont reçu la tuile actuelle
         while (numPlayersReady < nbPlayers)
         {
-            int poll_result = spoll(poll_fds, nbPlayers, 1000);
-            printf("poll result: %d\n", poll_result);
+            int poll_result = spoll(poll_fds, nbPlayers, 5);
+
             if (poll_result > 0)
             {
-                printf("in poll result\n");
+                // printf("poll result %d\n", poll_result);
                 for (i = 0; i < nbPlayers; i++)
                 {
-                    printf("in for\n");
-                    if (poll_fds[i].revents & POLLIN && !playersSentPosition[i])
-                    {
-                        printf("in pollin\n");
-                        int read_size = sread(tabPlayers[i].pipefd_write[0], &msg, sizeof(msg));
-                        printf("msg.code: %d\n", msg.code);
-                        if (read_size == -1)
-                        {
-                            perror("Erreur lors de la lecture du message du serveur");
-                            exit(EXIT_FAILURE);
-                        }
+                    // Un des processus enfants a envoyé un message
+                    // et le joueur n'a pas encore envoyé sa position pour ce tour
+                    if ((poll_fds[i].revents & POLLIN))
+                    { // && playersSentPosition[i]) {
+                        sread(tabPlayers[i].pipefd_write[0], &msg, sizeof(msg));
+                        // traitez la position de tuile recue du serveur fils
                         if (msg.code == FINISHED_PLAYING)
                         {
-                            printf("in finished playing\n");
-                            playersSentPosition[i] = true;
+                            // Marquez le joueur comme ayant envoyé sa position pour ce tour
+                            // playersSentPosition[i] = true;
                             numPlayersReady++;
                         }
                     }
                 }
             }
-            else if (poll_result == -1)
+            else
             {
-                perror("Erreur lors du poll");
-                exit(EXIT_FAILURE);
-            }
-            else if (poll_result == 0)
-            {
-                printf("Timeout\n");
-                break;
-            }
-
-            // Réinitialisation de playersSentPosition à false pour le prochain tour
-            for (i = 0; i < nbPlayers; i++)
-            {
-                playersSentPosition[i] = false;
+                // gerer l'erreur
+                //  printf("noon\n");
             }
         }
+        for (i = 0; i < MAX_PLAYERS; i++)
+        {
+            // playersSentPosition[i] = false;
+        }
+        nbTurnsPlayed++;
     }
+
     // END OF GAME PART
     msg.code = FINISH_GAME;
     for (i = 0; i < nbPlayers; i++)
@@ -352,27 +301,80 @@ int main(int argc, char const *argv[])
         nwrite(tabPlayers[i].pipefd_read[1], &msg, sizeof(msg));
     }
 
+    // RANKING SCORES
+    printf("IN RANKING SCORES\n");
+    printf("print scores\n");
+    for (int i = 0; i < nbPlayers; i++)
+    {
+        printf("score : %d de %s\n", scores->scores[i].score, scores->scores[i].pseudo);
+    }
+
+    int numScoreReady = 0;
+    Ranking preranking[MAX_PLAYERS];
+
+    preranking->nbPlayers = nbPlayers;
+
+    for (int i = 0; i < nbPlayers; i++)
+    {
+        strncpy(preranking->scores[i].pseudo, tabPlayers[i].pseudo, MAX_PSEUDO - 1);
+        preranking->scores[i].pseudo[MAX_PSEUDO - 1] = '\0';
+        preranking->scores[i].score = -1;
+    }
+
+    // Attendre que tous les joueurs confirment qu'ils ont reçu la tuile actuelle
+    while (numScoreReady < nbPlayers)
+    {
+        int poll_result = spoll(poll_fds, nbPlayers, 5);
+
+        if (poll_result > 0)
+        {
+            for (i = 0; i < nbPlayers; i++)
+            {
+                // Vérifiez si le pipe de lecture du processus fils est prêt pour la lecture
+                if ((poll_fds[i].revents & POLLIN && preranking->scores[i].score == -1))
+                {
+                    printf("in pollin\n");
+                    // Lire le message du processus fils
+                    sread(tabPlayers[i].pipefd_write[0], &msg, sizeof(msg));
+                    // Traitez la position de tuile reçue du processus fils
+                    if (msg.code == FINAL_SCORE)
+                    {
+                        tabPlayers[i].score = msg.tuile;
+                        // Marquez le joueur comme ayant envoyé sa position pour ce tour
+                        preranking->scores[i].score = msg.tuile;
+                        numScoreReady++;
+                    }
+                }
+            }
+        }
+        else
+        {
+            // Gérer l'erreur de poll
+        }
+    }
+
     // TRI DES SCORES
+    scores->nbPlayers = preranking->nbPlayers;
+    printf("avant tri, nbre de jouers: %d\n", scores->nbPlayers);
+    for (int i = 0; i < scores->nbPlayers; i++)
+    {
+        scores->scores[i] = preranking->scores[i];
+        printf("scoooore : %d\n", scores->scores[i].score);
+        printf("de : %s\n", scores->scores[i].pseudo);
+        printf("nbPlayers : %d\n", scores->nbPlayers);
+    }
+
+    printf("sortie de tri, nbre de jouers: %d\n", scores->nbPlayers);
     Ranking *sortedRanking = sortRanking(scores);
+    printf("sortie de sortRanking\n");
     // rend accès à la mémoire partagée
     sem_up(sem, 0);
 
     // liberation des différentes ressources a la fin du programme
     for (i = 0; i < nbPlayers; i++)
     {
-        int close1 = sclose(tabPlayers[i].pipefd_read[0]); // Fermeture du côté lecture du pipe
-        if (close1 == -1)
-        {
-            perror("Erreur lors de la fermeture du côté lecture du pipe");
-            exit(EXIT_FAILURE);
-        }
-
-        int close2 = sclose(tabPlayers[i].pipefd_write[1]); // Fermeture du côté écriture du pipe
-        if (close2 == -1)
-        {
-            perror("Erreur lors de la fermeture du côté écriture du pipe");
-            exit(EXIT_FAILURE);
-        }
+        sclose(tabPlayers[i].pipefd_read[1]);  // Fermeture du côté lecture du pipe
+        sclose(tabPlayers[i].pipefd_write[0]); // Fermeture du côté écriture du pipe
     }
 
     if (lines != NULL)
@@ -384,16 +386,10 @@ int main(int argc, char const *argv[])
         free(lines);
     }
 
-    disconnect_players(tabPlayers, nbPlayers);
-    int okclose = sclose(sockfd);
-
-    if (okclose == -1)
-    {
-        perror("Erreur lors de la fermeture du socket, ligne 405");
-        exit(EXIT_FAILURE);
-    }
-    // TODO : check si bien FINAL_RANKING ou RANKING ???
     sshmdt(sortedRanking);
+    disconnect_players(tabPlayers, nbPlayers);
+    sclose(sockfd);
+    // TODO : check si bien FINAL_RANKING ou RANKING ???
 
     return 0;
 }
