@@ -10,16 +10,33 @@ class ViewLaureat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        Text(
-          '\"${laureate['motivation']}\"',
-        ),
-        Text(
-          '${laureate['firstname'] ?? ''} ${laureate['surname'] ?? ''}',
-        ),
-      ],
+    return Container(
+      width: 500,
+      height: 200,
+      padding: const EdgeInsets.all(8), // Add some padding
+      decoration: BoxDecoration(
+        color: Colors.cyan.shade50, // Set the background color to light blue
+        borderRadius: BorderRadius.circular(10), // Add rounded corners
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Text(
+            '\"${laureate['motivation']}\"',
+            style: Theme.of(context).textTheme.headline6,
+          ),
+          Container(
+            padding: const EdgeInsets.all(8), // Add some padding
+            decoration: BoxDecoration(
+              color: Colors.cyan.shade300, // Set the background color to light blue
+              borderRadius: BorderRadius.circular(10), // Add rounded corners
+            ),
+            child: Text(
+              '${laureate['firstname'] ?? ''} ${laureate['surname'] ?? ''}',
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
