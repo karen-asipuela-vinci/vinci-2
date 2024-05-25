@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'contact.dart';
 import 'contact_row.dart';
 
-class HomeScreen {
+class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final contactRows =
     defaultContacts.map((contact) => ContactRow(contact: contact)).toList();
