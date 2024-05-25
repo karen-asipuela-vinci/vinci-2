@@ -3,7 +3,7 @@ class Property {
   bool isAHouse = false;
   int squareFootage = 0;
   int numberOfBedrooms = 0;
-  int price = 0;
+  double price = 0;
 }
 // creer liste de propriétés
 List<Property> properties = [
