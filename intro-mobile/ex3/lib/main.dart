@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'my_note.dart';
 
 final notes = List.generate(
-  3,
+  20,
   (index) => MyNote(
     title: "Titre de la note ${index + 1}",
     content: "Contenu de la note ${index + 1}",
@@ -12,11 +12,11 @@ final notes = List.generate(
 );
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatefulWidget {
-  MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -24,10 +24,14 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   //add function
-  void addNote(String title, String content) => setState(() => notes.add(MyNote(
-    title: title,
-    content: content,
-  )));
+  void addNote(String title, String content) {
+    setState(() {
+      notes.add(MyNote(
+        title: title,
+        content: content,
+      ));
+    });
+  }
 
   // This widget is the root of your application.
   @override
