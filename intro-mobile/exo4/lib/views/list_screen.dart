@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../models/article.dart';
 
 class ListScreen extends StatelessWidget {
-  const ListScreen({Key? key}) : super(key: key);
+  const ListScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +28,7 @@ class ListScreen extends StatelessWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {}, // TODO F06 go to form screen
+        onPressed: () =>  context.go("/form"), // TODO F06 go to form screen
         child: const Icon(Icons.add),
       ),
       body: Padding(
@@ -52,7 +52,8 @@ class ListScreen extends StatelessWidget {
                         ),
                         title: Text(article.title),
                         subtitle: Text(article.author),
-                        onTap: () {},
+                        onTap: () => context.go("/article/${article.id}",
+                            extra: article), // TODO F07 mark as read
                         // TODO F06 go to article screen with a path parameter (the article id) and passing the article as an extra argument
                         trailing: IconButton(
                           icon: const Icon(Icons.delete),

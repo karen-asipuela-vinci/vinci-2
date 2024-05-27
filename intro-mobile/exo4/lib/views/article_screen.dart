@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../models/article.dart';
 
 class ArticleScreen extends StatelessWidget {
   final Article article;
 
-  const ArticleScreen({Key? key, required this.article}) : super(key: key);
+  const ArticleScreen({super.key, required this.article});
 
   @override
   Widget build(BuildContext context) {
@@ -13,6 +14,12 @@ class ArticleScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text("Article"),
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            context.go("/");
+          },
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         child: article.read

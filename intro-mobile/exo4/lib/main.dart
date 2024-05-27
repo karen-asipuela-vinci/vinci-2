@@ -1,20 +1,33 @@
+import 'package:exo4/views/article_screen.dart';
+import 'package:exo4/views/form_screen.dart';
 import 'package:exo4/views/list_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'models/article.dart';
+
 final GoRouter _routeur = GoRouter(
-  // La route initiale est la racine
   initialLocation: '/',
-  // Les routes sont définies ici
   routes: [
     GoRoute(
       path: '/',
-      // Le builder est une fonction qui prend en paramètre le contexte et l'état
       builder: (context, state) {
-        // On retourne un widget list_screen
         return const ListScreen();
       },
-    )
+    ),
+    GoRoute(
+        path: '/form',
+        builder: (context, state) {
+          return const FormScreen();
+        }
+    ),
+    GoRoute(
+        path: '/article/:id',
+        builder: (context, state) {
+          // ! state.extra as Article because we need a Article as parameter
+          return ArticleScreen(article: state.extra as Article);
+        }
+    ),
   ]
 );
 
@@ -34,7 +47,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
-

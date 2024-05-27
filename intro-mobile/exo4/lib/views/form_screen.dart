@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class FormScreen extends StatefulWidget {
-  const FormScreen({Key? key}) : super(key: key);
+  const FormScreen({super.key});
 
   @override
   State<FormScreen> createState() => _FormScreenState();
@@ -28,6 +29,13 @@ class _FormScreenState extends State<FormScreen> {
       appBar: AppBar(
         title: const Text("New article"),
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+        // rajouter un bouton pour revenir à la page précédente
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            context.go("/");
+          },
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(32.0),
