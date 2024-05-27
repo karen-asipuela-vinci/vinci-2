@@ -2,6 +2,10 @@
 
 tuto4 - navigation et provider
 
+## utilisation des dependencies entre projets
+On modifie le fichier pubspec.yaml du projet (avec `flutter pub add go_router` par exemple),
+puis on lance la commande `flutter pub get` pour mettre à jour les dépendances.
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.
