@@ -8,7 +8,13 @@ final GoRouter _router = GoRouter(
   routes: [
     GoRoute(
       path: '/',
-      builder: (context, state) => const FirstScreen(),
+      builder: (context, state) {
+        // We get the extra data passed from the second screen
+        // If it's the first time we are on this screen, we will get 0
+        // les as int permettent de caster l'objet en int
+        final int nbClicks = (state.extra ?? 0) as int;
+        return FirstScreen(nbClicks: nbClicks);
+      },
       routes: [
         GoRoute(
           path: 'secondscreen',
