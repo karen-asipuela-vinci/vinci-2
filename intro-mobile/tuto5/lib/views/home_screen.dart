@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+
+import '../models/film.dart';
+import 'film_row.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -9,17 +11,22 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  var message = "Click on the button to launch the request.";
+  var message = " Loading, please wait…";
+  Film? film;
 
   Future<void> _initFilm() async {
-    const url = "https://sebstreb.github.io/flutter-fiche-5/films-api/1";
     try {
-      setState(() => message = "Loading, please wait…"); // Uncompleted
-      var response = await http.get(Uri.parse(url));
-      setState(() => message = response.body); // Completed with a value
+      var response = await Film.fetchFilm(2);
+      setState(() => film = response);
     } catch (error) {
-      setState(() => message = error.toString()); //Completed with an error
+      setState(() => message = error.toString());
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _initFilm();
   }
 
   @override
@@ -31,15 +38,9 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Expanded(child: Center(child: Text(message))),
-            ElevatedButton(
-              onPressed: _initFilm,
-              child: const Text("Fetch movie n°1"),
-            ),
-          ],
-        ),
+        child: film == null
+            ? Column(children: [Center(child: Text(message))])
+            : FilmRow(film: film!),
       ),
     );
   }
