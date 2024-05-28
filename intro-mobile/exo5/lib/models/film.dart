@@ -1,35 +1,52 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
+import 'package:http/http.dart';
 
 class Film {
   static const baseUrl = "https://sebstreb.github.io/flutter-fiche-5/ghibli-films";
 
-  final int id;
+  final String id;
   final String title;
+  final String image;
+  final String description;
+  final String releaseDate;
   final String director;
-  final int duration;
-  final String link;
+  final String runningTime;
+  final String rtScore;
 
-  const Film(this.id, this.title, this.director, this.duration, this.link);
+  const Film({
+    required this.id,
+    required this.title,
+    required this.image,
+    required this.description,
+    required this.releaseDate,
+    required this.director,
+    required this.runningTime,
+    required this.rtScore,
+  });
 
-  Film.fromJson(Map<String, dynamic> jsonObj)
+  Film.fromJson(Map<String, dynamic> json)
       : this(
-    jsonObj["id"],
-    jsonObj["title"],
-    jsonObj["director"],
-    jsonObj["duration"],
-    jsonObj["link"],
+    id: json["id"],
+    title: json["title"],
+    image: json["image"],
+    description: json["description"],
+    releaseDate: json["release_date"],
+    director: json["director"],
+    runningTime: json["running_time"],
+    rtScore: json["rt_score"],
   );
 
+
   @override
-  String toString() =>
-      'Film: $title, directed by $director, $duration min, $link';
+  String toString() => 'GhibliMovie{id: $id, title: $title, image: $image, '
+  'description: $description, releaseDate: $releaseDate, '
+  'director: $director, runningTime: $runningTime, rtScore: $rtScore}';
 
   //! méthode statique et asynchrone
   // Future car on va attendre la réponse du serveur (async)
   static Future<Film> fetchFilm(int id) async {
-    var response = await http.get(Uri.parse("$baseUrl/$id"));
+    var response = await get(Uri.parse(baseUrl));
 
     if (response.statusCode != 200) {
       throw Exception("Error ${response.statusCode} fetching movie");
@@ -41,7 +58,7 @@ class Film {
   }
 
   static Future<List<Film>> fetchFilms() async {
-    var response = await http.get(Uri.parse("$baseUrl/"));
+    var response = await get(Uri.parse(baseUrl));
 
     if (response.statusCode != 200) {
       throw Exception("Error ${response.statusCode} fetching movies");
@@ -51,8 +68,7 @@ class Film {
     // déléguer le traitement de la réponse à un autre isolate
     // isolates = processus légers qui s'exécutent en parallèle
     return compute((input) {
-      final jsonList = jsonDecode(input);
-      return jsonList.map<Film>((jsonObj) => Film.fromJson(jsonObj)).toList();
+      return jsonDecode(response.body).map<Film>((jsonObj) => Film.fromJson(jsonObj)).toList();
     }, response.body);
   }
 

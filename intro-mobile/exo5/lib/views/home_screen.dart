@@ -13,16 +13,23 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   var message = "Loading…";
+  final films = <Film>[];
 
-  Future<void> _initFilms() async {
-    const url = "https://sebstreb.github.io/flutter-fiche-5/ghibli-films";
-     try {
-       setState(() => message = "Loading, please wait…"); // Uncompleted
-       var response = await http.get(Uri.parse(url));
-       setState(() => message = response.body); // Completed with a value
-     } catch (error) {
-       setState(() => message = error.toString()); //Completed with an error
-     }
+  @override
+  void initState() {
+    Future.delayed(const Duration(seconds: 3), () async {
+      try {
+        setState(() => message = "Loading, any second now…");
+        final response = await Film.fetchFilms();
+        setState(() {
+          if (response.isEmpty) message = "No movies found…";
+          films.addAll(response);
+        });
+      } catch (error) {
+        setState(() => message = error.toString());
+      }
+    });
+    super.initState();
   }
 
   @override
@@ -30,19 +37,17 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text("Tutoriel 5"),
+        title: const Text("exo 5 - ghibli films"),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-            children: [
-              Expanded(child: Center(child: Text(message))),
-              ElevatedButton(
-                onPressed: _initFilms,
-                child: const Text("Fetch films"),
-              ),
-            ],
-          ),
+        child: films.isEmpty
+            ? Text(message)
+            : ListView.separated(
+              itemCount: films.length,
+              itemBuilder: (context, index) => FilmRow(film: films[index]),
+              separatorBuilder: (context, index) => const SizedBox(height: 8),
+         ),
       ),
     );
   }
