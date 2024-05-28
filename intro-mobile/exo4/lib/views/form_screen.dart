@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+
+import '../models/article.dart';
+import '../view_models/click_actions_article.dart';
 
 class FormScreen extends StatefulWidget {
   const FormScreen({super.key});
@@ -29,13 +33,6 @@ class _FormScreenState extends State<FormScreen> {
       appBar: AppBar(
         title: const Text("New article"),
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-        // rajouter un bouton pour revenir à la page précédente
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            context.go("/");
-          },
-        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(32.0),
@@ -62,7 +59,7 @@ class _FormScreenState extends State<FormScreen> {
                   maxLines: null,
                   controller: contentController,
                   decoration:
-                      const InputDecoration(labelText: "Article content"),
+                  const InputDecoration(labelText: "Article content"),
                   validator: (value) => (value == null || value == "")
                       ? "Content can't be empty"
                       : null,
@@ -73,7 +70,17 @@ class _FormScreenState extends State<FormScreen> {
                 child: const Text("Create article"),
                 onPressed: () {
                   if (key.currentState!.validate()) {
-                    // TODO F07 create article
+                    Article newArticle = Article(
+                      title: titleController.text,
+                      author: authorController.text,
+                      content: contentController.text,
+                    );
+                    Provider.of<ClickActionsArticle>(context, listen: false)
+                        .addArticle(newArticle);
+                    // clear form thanks to the form key
+                    key.currentState!.reset();
+                    // go back to the list screen
+                    context.go("/");
                   }
                 },
               )

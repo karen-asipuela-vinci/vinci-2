@@ -1,53 +1,60 @@
-import 'package:exo4/views/article_screen.dart';
-import 'package:exo4/views/form_screen.dart';
-import 'package:exo4/views/list_screen.dart';
+import 'package:exo4/view_models/click_actions_article.dart';
+
+import 'view_models/click_actions_article.dart';
+import 'package:provider/provider.dart';
+
+import 'views/article_screen.dart';
+import 'views/form_screen.dart';
+import 'views/list_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'models/article.dart';
 
-final GoRouter _routeur = GoRouter(
+final GoRouter _router = GoRouter(
   initialLocation: '/',
   routes: [
     GoRoute(
       path: '/',
-      builder: (context, state) {
-        return const ListScreen();
-      },
+      builder: (context, state) => const ListScreen(),
+      routes: [
+        GoRoute(
+          path: 'create-article',
+          builder: (context, state) => const FormScreen(),
+        ),
+        GoRoute(
+          path: 'articles/:id',
+          builder: (context, state) {
+            final id = state.pathParameters['id']!;
+            final Article? article =
+            Provider.of<ClickActionsArticle>(context, listen: false)
+                .getArticleById(int.parse(id));
+            return ArticleScreen(article: article!);
+          },
+        ),
+      ],
     ),
-    GoRoute(
-        path: '/form',
-        builder: (context, state) {
-          return const FormScreen();
-        }
-    ),
-    GoRoute(
-        path: '/article/:id',
-        builder: (context, state) {
-          // ! state.extra as Article because we need a Article as parameter
-          return ArticleScreen(article: state.extra as Article);
-        }
-    ),
-  ]
+  ],
 );
 
 void main() {
-  runApp(const MyApp());
+  runApp(ChangeNotifierProvider<ClickActionsArticle>(
+      create: (context) => ClickActionsArticle(), child: const MyApp()));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key});
+  const MyApp({super.key});
 
+  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      routerConfig: _routeur,
-      title: 'Exo4',
+      routerConfig: _router,
+      title: 'Articles App',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      debugShowCheckedModeBanner: false,
     );
   }
 }

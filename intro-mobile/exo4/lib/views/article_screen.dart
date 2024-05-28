@@ -1,7 +1,9 @@
+import 'package:exo4/view_models/click_actions_article.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 import '../models/article.dart';
+import '../view_models/click_actions_article.dart';
 
 class ArticleScreen extends StatelessWidget {
   final Article article;
@@ -14,19 +16,16 @@ class ArticleScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text("Article"),
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            context.go("/");
-          },
-        ),
       ),
-      floatingActionButton: FloatingActionButton(
-        child: article.read
-            ? const Icon(Icons.check_box)
-            : const Icon(Icons.check_box_outline_blank),
-        onPressed: () {}, // TODO F07 mark as read
-      ),
+      floatingActionButton:
+      Consumer<ClickActionsArticle>(builder: (context, viewModel, child) {
+        return FloatingActionButton(
+          child: article.read
+              ? const Icon(Icons.check_box)
+              : const Icon(Icons.check_box_outline_blank),
+          onPressed: () => viewModel.toggleRead(article),
+        );
+      }),
       body: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
