@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:exo6/view_models/photo_view_model.dart';
 import 'package:exo6/models/photo.dart';
@@ -41,8 +42,9 @@ class PhotoGallery extends StatelessWidget {
                   return Card(
                     child: Column(
                       children: [
-                        Image.network(width:100,
+                        Image.network(
                           photos[index].thumbnailUrl,
+                          width: 100,
                         ),
                         Padding(
                           padding: const EdgeInsets.all(8.0),
@@ -63,6 +65,12 @@ class PhotoGallery extends StatelessWidget {
             },
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          context.go('/add-photo');
+        },
+        child: const Icon(Icons.add),
       ),
     );
   }

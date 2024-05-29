@@ -27,11 +27,17 @@ class PhotoViewModel extends ChangeNotifier {
       rethrow;
     }
   }
+
+  Future<void> addPhoto(Photo photo) async {
+    try {
+      await _photoRepository.addPhoto(photo);
+      fetchPhotos();
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = e.toString();
+      rethrow;
+    }
+  }
+
 }
 
-/*
-pour la comparaison, si on avait voulu comparer autre chose :
-  fetchedPhotos.sort(
-        (a, b) => b.id.compareTo(a.id),
-      );
- */
