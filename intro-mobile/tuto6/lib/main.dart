@@ -51,7 +51,9 @@ class _MyHomeScreenState extends State<MyHomeScreen> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: FutureBuilder<List<dynamic>>(
-        future: _fetchData(),
+        // pour rajouter un délai d'attente et voir le chargement
+        // sinon juste mettre _fetchData() sans le Future.delayed
+        future: Future.delayed(const Duration(seconds: 2), _fetchData),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             return ListView.builder(
