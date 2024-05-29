@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import 'photo.dart';
 
 class PhotoRepository {
-  final String _baseUrl = 'https://unreal-api.azurewebsites.net/';
+  final String _baseUrl = 'https://unreal-api.azurewebsites.net';
   final http.Client _http = http.Client();
 
   Future<List<Photo>> fetchPhotos() async {

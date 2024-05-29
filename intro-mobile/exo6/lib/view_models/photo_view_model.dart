@@ -17,7 +17,11 @@ class PhotoViewModel extends ChangeNotifier {
   Future<List<Photo>> fetchPhotos() async {
     try {
       final List<Photo> fetchedPhotos = await _photoRepository.fetchPhotos();
-      return fetchedPhotos.reversed.toList(); // Trier par ID décroissant
+      //return fetchedPhotos.reversed.toList(); // Trier par ID décroissant
+      fetchedPhotos.sort(
+            (a, b) => b.id.compareTo(a.id),
+      );
+      return fetchedPhotos;
     } catch (e) {
       _errorMessage = e.toString();
       rethrow;
