@@ -1,0 +1,1 @@
+Les exemples utilisent le logiciel cowsay doit être installé sur la machine : sudo apt install cowsay
