@@ -6,69 +6,72 @@
 
 #include "utils_v1.h"
 
-#define BUFFERSIZE 80
-#define FILENAME "test"
+#define BUFFERSIZE 80   // Définition de la taille du buffer
+#define FILENAME "test" // Définition du nom du fichier
 
-void writeFile (char* file);
-void readFile (char* file);
+// Déclaration des fonctions
+void writeFile(char *file);
+void readFile(char *file);
 
-int main(int argc, char **argv) {
-  writeFile(FILENAME);
-  readFile(FILENAME);
+int main(int argc, char **argv)
+{
+  writeFile(FILENAME); // Appel de la fonction writeFile
+  readFile(FILENAME);  // Appel de la fonction readFile
 }
 
+void writeFile(char *file)
+{
+  char bufRd[BUFFERSIZE]; // Création du buffer
 
-void writeFile (char* file) {
-  /* buffer */
-  char bufRd[BUFFERSIZE]; 
-	
-  /* Opening the file in write mode */
+  // Ouverture du fichier en mode écriture
   int fd = open(file, O_WRONLY | O_TRUNC | O_CREAT, 0644);
   checkNeg(fd, "Error opening file");
- 
-  /* Reading STDIN, then writing file, up to EOF (Ctrl-D) */
-  char* msg = "Enter text lines (Ctrl-D to terminate):\n";
+
+  // Lecture de l'entrée standard, puis écriture dans le fichier jusqu'à EOF (Ctrl-D)
+  char *msg = "Enter text lines (Ctrl-D to terminate):\n";
   int len = strlen(msg);
   int nbCharWr = write(1, msg, len);
-  checkCond(nbCharWr != len,"Error writing on stdout");
-  
+  checkCond(nbCharWr != len, "Error writing on stdout");
+
   int nbCharRd = read(0, bufRd, BUFFERSIZE);
-  while (nbCharRd > 0) {
-    // For the first use of the "write" function, 
-    // we assume that it is able to write "BUFFERSIZE" bytes at once. 
-    // Be careful, this assumption is too strong. 
-    // We are going to fix this later in the course.
+  while (nbCharRd > 0)
+  {
+    // Pour la première utilisation de la fonction "write",
+    // nous supposons qu'elle est capable d'écrire "BUFFERSIZE" octets à la fois.
+    // Attention, cette hypothèse est trop forte.
+    // Nous allons corriger cela plus tard dans le cours.
     nbCharWr = write(fd, bufRd, nbCharRd);
-    checkCond(nbCharWr != nbCharRd,"Error writing file");
+    checkCond(nbCharWr != nbCharRd, "Error writing file");
     nbCharRd = read(0, bufRd, BUFFERSIZE);
   }
 
-  checkNeg(nbCharRd,"Error reading stdin");
+  checkNeg(nbCharRd, "Error reading stdin");
 
-  /* Closing fd */
+  // Fermeture du descripteur de fichier
   int res = close(fd);
-  checkNeg(res,"Error closing fd");
+  checkNeg(res, "Error closing fd");
 }
 
-void readFile (char* file) {
-  /* buffer */
-  char bufRd[BUFFERSIZE]; 
+void readFile(char *file)
+{
+  char bufRd[BUFFERSIZE]; // Création du buffer
 
-  /* Opening the file in read mode */
+  // Ouverture du fichier en mode lecture
   int fd = open(file, O_RDONLY);
   checkNeg(fd, "Error opening file");
- 
-  /* Reading file, then writing STDOUT, up to EOF */
+
+  // Lecture du fichier, puis écriture sur STDOUT jusqu'à EOF
   int nbCharRd = read(fd, bufRd, BUFFERSIZE);
-  while (nbCharRd > 0) {
+  while (nbCharRd > 0)
+  {
     int nbCharWr = write(1, bufRd, nbCharRd);
-    checkCond(nbCharWr != nbCharRd,"Error writing stdout");
+    checkCond(nbCharWr != nbCharRd, "Error writing stdout");
     nbCharRd = read(fd, bufRd, BUFFERSIZE);
   }
 
-  checkNeg(nbCharRd,"Error reading file");
+  checkNeg(nbCharRd, "Error reading file");
 
-  /* Closing fd */
+  // Fermeture du descripteur de fichier
   int res = close(fd);
-  checkNeg(res, "Error closing fd");    
+  checkNeg(res, "Error closing fd");
 }
