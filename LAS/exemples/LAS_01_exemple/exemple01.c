@@ -6,7 +6,21 @@
 
 #include "utils_v1.h"
 
-#define BUFFERSIZE 80   // Définition de la taille du buffer
+#define BUFFERSIZE 80 // Définition de la taille du buffer
+/*
+Un buffer est une zone de mémoire temporaire utilisée pour stocker des données pendant
+leur transfert d'un endroit à un autre.
+Le concept de buffer est utilisé dans de nombreux contextes en informatique,
+notamment pour la lecture et l'écriture de fichiers,
+le transfert de données sur le réseau, etc.
+
+Dans le contexte de votre code, bufRd est un buffer utilisé pour lire des données de l'entrée
+standard (le clavier, généralement) et les écrire dans un fichier.
+La taille du buffer est définie par BUFFERSIZE, qui est défini comme 80.
+Cela signifie que le programme lira jusqu'à 80 caractères à la fois de l'entrée standard
+et les écrira dans le fichier. Si l'utilisateur tape plus de 80 caractères
+avant d'appuyer sur Entrée, le programme lira et écrira les caractères en plusieurs fois.
+*/
 #define FILENAME "test" // Définition du nom du fichier
 
 // Déclaration des fonctions
