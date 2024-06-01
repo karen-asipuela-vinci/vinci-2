@@ -7,6 +7,8 @@ que son processus enfant est prêt pour le traitement ou pour informer un proces
 Dans le code que vous avez fourni, SIGUSR1 est utilisé pour signaler au processus enfant qu'il doit terminer son exécution.
 */
 
+// ! comprendre mais appliquer le code de exemple10.c
+
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
