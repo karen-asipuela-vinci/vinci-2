@@ -1,4 +1,3 @@
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -15,22 +14,18 @@
 #define MESSAGE_SIZE 8192
 #define BACKLOG 5
 
-/* return sockfd */
+// Cette fonction initialise un socket serveur et le lie à un port spécifié.
+// En cas de succès, elle renvoie le descripteur de fichier du socket.
+// En cas d'échec, elle affiche la cause de l'erreur et quitte le programme.
 int initSocketServer(int port)
 {
-	int sockfd = ssocket();
-
-	/* no socket error */
-
-	sbind(port, sockfd);
-
-	/* no bind error */
-	slisten(sockfd, BACKLOG);
-
-	/* no listen error */
-	return sockfd;
+	int sockfd = ssocket();	  // Crée un nouveau socket
+	sbind(port, sockfd);	  // Lie le socket au port spécifié
+	slisten(sockfd, BACKLOG); // Met le socket en mode écoute
+	return sockfd;			  // Renvoie le descripteur de fichier du socket
 }
 
+// Cette fonction renvoie un nom de monstre aléatoire.
 static const char *random_monster()
 {
 	int random_number = rand() % 7 + 1;
@@ -38,29 +33,24 @@ static const char *random_monster()
 	{
 	case 1:
 		return "skeleton";
-		break;
 	case 2:
 		return "stegosaurus";
-		break;
 	case 3:
 		return "milk";
-		break;
 	case 4:
 		return "bunny";
-		break;
 	case 5:
 		return "duck";
-		break;
 	case 6:
 		return "cock";
-		break;
 	case 7:
 		return "dragon";
-		break;
 	}
 	return "random number server ????";
 }
 
+// Cette fonction exécute le programme cowsay avec un monstre aléatoire et un message spécifié.
+// Le résultat est écrit dans un fichier spécifié.
 static void exec_cowsay(void *namefileV, void *msgV)
 {
 	char *namefile = (char *)namefileV;
@@ -79,7 +69,6 @@ int main(int argc, char **argv)
 	int childpid;
 	char namefile[1024];
 	struct sockaddr_in addr;
-	/* 1024 client connections MAX */
 	struct pollfd fds[1024];
 	bool fds_invalid[1024];
 	int nbSockfd = 0;
@@ -94,7 +83,6 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-	// addr_size = sizeof(struct sockaddr_in);
 	sockfd = initSocketServer(atoi(argv[1]));
 	printf("Le serveur est à l'écoute sur le port : %i \n", atoi(argv[1]));
 
@@ -107,24 +95,21 @@ int main(int argc, char **argv)
 	{
 		spoll(fds, nbSockfd, 0);
 
-		// trt accept fds[0] == socket d'écoute sur le port passé en argument
+		// Si le socket d'écoute est prêt à lire (c'est-à-dire qu'une connexion entrante est en attente), accepte la nouvelle connexion.
 		if (fds[0].revents & POLLIN && !fds_invalid[0])
 		{
-			/* client trt */
 			newsockfd = saccept(sockfd);
-			// add sock to fds poll
 			fds[nbSockfd].fd = newsockfd;
 			fds[nbSockfd].events = POLLIN;
 			fds_invalid[nbSockfd] = false;
 			nbSockfd++;
 		}
 
-		// trt messages clients
+		// Traite les messages des clients
 		for (i = 1; i < nbSockfd; i++)
 		{
 			if (fds[i].revents & POLLIN && !fds_invalid[i])
 			{
-
 				sread(fds[i].fd, msg, sizeof(msg));
 
 				printf("MESSAGE RECU DE : %s - ADRESSE IP CLIENT : %s\n", msg, inet_ntoa(addr.sin_addr));
