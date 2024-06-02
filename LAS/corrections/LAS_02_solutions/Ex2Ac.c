@@ -6,27 +6,37 @@
 
 int main(int argc, char **argv)
 {
-    char *str1 = "trois .. deux .. un ..\n";
-    char *str2 = "partez !\n";
+    char *str1 = "Bonjour, "; // Déclaration et initialisation de la chaîne 'str1'
+    char *str2 = "monde !\n"; // Déclaration et initialisation de la chaîne 'str2'
 
-    if (write(1, str1, strlen(str1)) == -1) {
-        perror("Write failed");
-        exit(10);
+    /* Écriture de 'str1' sur la sortie standard */
+    if (write(1, str1, strlen(str1)) == -1)
+    {                           // Si l'écriture échoue
+        perror("Write failed"); // Affiche un message d'erreur
+        exit(10);               // Quitte le programme avec un code d'erreur
     }
 
     /* Création du processus fils */
-    int childId = fork();
-    if (childId == -1) { 
-        perror("Fork failed");
-        exit(20);
+    int childId = fork(); // Création d'un nouveau processus
+    if (childId == -1)
+    {                          // Si la création du processus échoue
+        perror("Fork failed"); // Affiche un message d'erreur
+        exit(20);              // Quitte le programme avec un code d'erreur
     }
 
-    if (!childId) { 
+    if (!childId)
+    {
         /* Dans le processus enfant */
+        /* Écriture de 'str2' sur la sortie standard */
         if ((write(1, str2, strlen(str2))) == -1)
-        {
-            perror("Write failed");
-            exit(10);
+        {                           // Si l'écriture échoue
+            perror("Write failed"); // Affiche un message d'erreur
+            exit(10);               // Quitte le programme avec un code d'erreur
         }
     }
 }
+
+/*
+Ajoutez ‘\n’ à la fin des deux chaînes de caractères.
+Qu’affiche ce programme modifié ?
+*/

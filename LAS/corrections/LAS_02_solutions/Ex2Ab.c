@@ -6,26 +6,39 @@
 
 int main(int argc, char **argv)
 {
-    char *str1 = "trois .. deux .. un ..";
-    char *str2 = "partez !";
+    char *str1 = "trois .. deux .. un .."; // Déclaration et initialisation de la chaîne 'str1'
+    char *str2 = "partez !";               // Déclaration et initialisation de la chaîne 'str2'
 
-    if (write(1, str1, strlen(str1)) == -1) {
-        perror("Write failed");
-        exit(10);
+    /* Écriture de 'str1' sur la sortie standard */
+    if (write(1, str1, strlen(str1)) == -1)
+    {                           // Si l'écriture échoue
+        perror("Write failed"); // Affiche un message d'erreur
+        exit(10);               // Quitte le programme avec un code d'erreur
     }
 
     /* Création du processus fils */
-    int childId = fork();
-    if (childId == -1) { 
-        perror("Fork failed");
-        exit(20);
+    int childId = fork(); // Création d'un nouveau processus
+    if (childId == -1)
+    {                          // Si la création du processus échoue
+        perror("Fork failed"); // Affiche un message d'erreur
+        exit(20);              // Quitte le programme avec un code d'erreur
     }
 
-    if (!childId) {
+    if (!childId)
+    {
         /* Dans le processus enfant */
-        if ((write(1, str2, strlen(str2))) == -1) {
-            perror("Write failed");
-            exit(10);
+        /* Écriture de 'str2' sur la sortie standard */
+        if ((write(1, str2, strlen(str2))) == -1)
+        {                           // Si l'écriture échoue
+            perror("Write failed"); // Affiche un message d'erreur
+            exit(10);               // Quitte le programme avec un code d'erreur
         }
     }
 }
+
+/*
+Ecrivez un programme qui affiche la chaîne de caractères "trois .. deux .. un .."
+avant de créer un processus enfant qui affiche la chaîne de caractères "partez !".
+Les écritures doivent se faire grâce à l’appel système write.
+Qu’affiche ce programme lors de son exécution ?
+*/
