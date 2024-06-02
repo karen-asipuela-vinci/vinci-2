@@ -1,5 +1,5 @@
-/* Blocage de signal (sigprocmask) avant création du processus fils, 
-   suivi de l'armement du signal (sigaction) dans le fils et 
+/* Blocage de signal (sigprocmask) avant création du processus fils,
+   suivi de l'armement du signal (sigaction) dans le fils et
    de sa mise en attente du signal (sigsuspend) */
 
 #include <stdio.h>
@@ -15,17 +15,19 @@
 // CHILD CODE
 //***************************************************************************
 
-void childhandler() {
-  // armement du signal SIGUSR1
-  ssigaction(SIGUSR1, ehandler);  // ehanlder: fonction qui ne fait rien (cf. module utils)
+void childhandler()
+{
+  // Arme le signal SIGUSR1 pour appeler ehandler lors de sa réception
+  ssigaction(SIGUSR1, ehandler); // ehandler: fonction qui ne fait rien (cf. module utils)
 
-  // ensemble (masque) contenant tous les signaux sauf SIGUSR1
+  // Crée un ensemble de signaux (masque) contenant tous les signaux sauf SIGUSR1
   sigset_t set;
   ssigfillset(&set);
   sigdelset(&set, SIGUSR1);
-  
-  for (int i = 0; i != HEARTS; i++) {
-    // attente du signal SIGUSR1 
+
+  for (int i = 0; i != HEARTS; i++)
+  {
+    // Met le processus en attente jusqu'à la réception du signal SIGUSR1
     // (seul SIGUSR1 peut provoquer la sortie de sigsuspend)
     sigsuspend(&set);
     printf("signal SIGUSR1 reçu !\n");
@@ -36,9 +38,13 @@ void childhandler() {
 // SIGCHLD handler (parent)
 //***************************************************************************
 
-static volatile  sig_atomic_t end = 0;
+// Variable globale pour indiquer la fin du processus
+static volatile sig_atomic_t end = 0;
 
-void sigchldhandler() {
+// Fonction pour gérer le signal SIGCHLD
+void sigchldhandler()
+{
+  // Met fin au processus
   end = 1;
 }
 
@@ -46,29 +52,34 @@ void sigchldhandler() {
 // MAIN
 //***************************************************************************
 
-int main() {
-  // blocage des signaux SIGUSR1 et SIGCHLD
-  // à l'aide d'un ensemble (masque) contenant SIGUSR1 et SIGCHLD
+// Fonction principale
+int main()
+{
+  // Bloque les signaux SIGUSR1 et SIGCHLD
+  // Crée un ensemble de signaux (masque) contenant SIGUSR1 et SIGCHLD
   sigset_t set;
   ssigemptyset(&set);
   sigaddset(&set, SIGUSR1);
   sigaddset(&set, SIGCHLD);
   ssigprocmask(SIG_BLOCK, &set, NULL);
-  
+
+  // Crée un processus fils et exécute childhandler
   pid_t childID = fork_and_run0(childhandler);
 
   /* PROCESSUS PARENT */
-  // armement du signal SIGCHLD
+  // Arme le signal SIGCHLD pour appeler sigchldhandler lors de sa réception
   ssigaction(SIGCHLD, sigchldhandler);
 
-  // déblocage du signal SIGCHLD
-  // à l'aide d'un ensemble (masque) contenant uniquement SIGUSR1
+  // Débloque le signal SIGCHLD
+  // Crée un ensemble de signaux (masque) contenant uniquement SIGCHLD
   ssigemptyset(&set);
   sigaddset(&set, SIGCHLD);
   ssigprocmask(SIG_UNBLOCK, &set, NULL);
- 
-  while (!end) {
-    // envoi de signal SIGUSR1 au fils
+
+  // Boucle jusqu'à la fin du processus
+  while (!end)
+  {
+    // Envoie le signal SIGUSR1 au processus fils
     skill(childID, SIGUSR1);
     sleep(1);
   }
