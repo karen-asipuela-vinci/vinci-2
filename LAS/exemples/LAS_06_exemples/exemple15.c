@@ -6,46 +6,35 @@
 
 #include "utils_v2.h"
 
-#define KEY 369
-#define PERM 0666 // droits d'accès, classiques
+#define KEY 369   // Clé unique pour identifier la mémoire partagée
+#define PERM 0666 // Droits d'accès classiques pour la mémoire partagée
 
 /******************************************************************************
-// CHILD HANDLER
+// GESTIONNAIRE DE PROCESSUS ENFANT (Child handler)
 // ******************************************************************************/
-void child_handler () {
-  // CREATE SHARED MEMORY
-  // quand on créer une ressource -> définir droits d'accès
-  int shm_id = sshmget(KEY, sizeof(int), IPC_CREAT | PERM);
-  int* z = sshmat(shm_id); // = pointeur vers la mémoire partagée
+void child_handler()
+{
+  // CRÉATION DE LA MÉMOIRE PARTAGÉE
+  // Lors de la création d'une ressource, il faut définir les droits d'accès
+  int shm_id = sshmget(KEY, sizeof(int), IPC_CREAT | PERM); // Crée un segment de mémoire partagée
+  int *z = sshmat(shm_id);                                  // Attache le segment de mémoire partagée à l'espace d'adressage du processus
 
-  printf("IN CHILD: shared mem value: *z = %d\n", *z);
-  // on modifie la valeur de la mémoire partagée
+  printf("DANS L'ENFANT : valeur de la mémoire partagée : *z = %d\n", *z);
+  // Modification de la valeur de la mémoire partagée
   *z = 987654321;
-  // puis on la détache/supprime
+  // Détachement et suppression de la mémoire partagée
   sshmdt(z);
 }
 
 //******************************************************************************
-//MAIN FUNCTION
+// FONCTION PRINCIPALE (main)
 //******************************************************************************
-int main (int argc, char *argv[]) {
-  pid_t cpid = fork_and_run0(&child_handler);
-  
-  swaitpid(cpid, NULL, 0);  // make sure child finishes before accessing shared memory
-  
-  // GET SHARED MEMORY 
-  int shm_id = sshmget(KEY, sizeof(int), 0);
-  int* z = sshmat(shm_id);
-  
-  printf("IN PARENT: shared mem value: *z = %d\n", *z);
-  
-  sshmdt(z);
+int main(int argc, char *argv[])
+{
+  pid_t cpid = fork_and_run0(&child_handler); // Crée un processus enfant et exécute le gestionnaire d'enfant
 
-  //COMMENT OR UNCOMMENT
-  sshmdelete(shm_id);
-}
+  swaitpid(cpid, NULL, 0); // Assure que le processus enfant termine avant d'accéder à la mémoire partagée
 
-
-
-
- 
+  // ACCÈS À LA MÉMOIRE PARTAGÉE
+  int shm_id = sshmget(KEY, sizeof(int), 0); // Accède au segment de mémoire partagée
+  int *z = sshmat(shm_id);                   // Attache le segment de mémoire partagée à l'espace d'adressage du processus
