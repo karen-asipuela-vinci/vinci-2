@@ -9,11 +9,12 @@
 // MAIN
 //***************************************************************************
 
-int main(int argc, char *argv[]) {
-  ssigaction(SIGHUP, SIG_IGN);
-  execvp(argv[1], argv+1);
-  perror("ERROR EXECV");
-  exit(EXIT_FAILURE);
+int main(int argc, char *argv[])
+{
+    ssigaction(SIGHUP, SIG_IGN);
+    execvp(argv[1], argv + 1);
+    perror("ERROR EXECV");
+    exit(EXIT_FAILURE);
 }
 
 /*
@@ -24,7 +25,7 @@ Ping exécuté en background:
 
     ./bonus ping google.com &
 
-Fermeture du terminal. Puis vérification de la persistance 
+Fermeture du terminal. Puis vérification de la persistance
 du processus ping dans un autre terminal:
 
     ps -ef | grep ping

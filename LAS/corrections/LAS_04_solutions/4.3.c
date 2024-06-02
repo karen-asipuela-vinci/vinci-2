@@ -12,29 +12,32 @@
 // SIGNAL HANDLER
 //***************************************************************************
 
-static const char *const SENTENCE = "--> Signal SIGPIPE recu par le pere: "\
-                     "impossible de transmettre des donnees sur le pipe\n";
+static const char *const SENTENCE = "--> Signal SIGPIPE recu par le pere: "
+                                    "impossible de transmettre des donnees sur le pipe\n";
 
-void sighandler (int sig) {
+void sighandler(int sig)
+{
    const size_t SZ = strlen(SENTENCE);
    write(1, SENTENCE, SZ);
-   _exit(128+sig);  // cf. https://tldp.org/LDP/abs/html/exitcodes.html
+   _exit(128 + sig); // cf. https://tldp.org/LDP/abs/html/exitcodes.html
 }
 
 //***************************************************************************
 // CHILD CODE
 //***************************************************************************
 
-void run (void *args) {
+void run(void *args)
+{
    // FILS //
    int *pipefd = args;
 
    // configuration pipe
-   sclose(pipefd[1]);  // fermeture du pipe en écriture
-   sclose(pipefd[0]);  // fermeture du pipe en lecture ==> SIGPIPE si écriture sur pipefd[1]!
-   
-   int i=0;
-   while (1) {
+   sclose(pipefd[1]); // fermeture du pipe en écriture
+   sclose(pipefd[0]); // fermeture du pipe en lecture ==> SIGPIPE si écriture sur pipefd[1]!
+
+   int i = 0;
+   while (1)
+   {
       i++;
    }
 }
@@ -43,7 +46,7 @@ void run (void *args) {
 // MAIN
 //***************************************************************************
 
-int main (int argc, char ** argv)
+int main(int argc, char **argv)
 {
    int nbChar;
 
@@ -54,30 +57,46 @@ int main (int argc, char ** argv)
    fork_and_run1(run, pipefd);
 
    // PARENT //
-   char line[BUFFERSIZE+1];
+   char line[BUFFERSIZE + 1];
 
    // armement du handler de SIGPIPE
    ssigaction(SIGPIPE, sighandler);
-   
+
    // configuration pipe
    sclose(pipefd[0]);
 
    printf("Entrez des chaines de caracteres (Ctrl-D pour terminer):\n");
-   while((nbChar = sread(0,line,BUFFERSIZE))) {
+   while ((nbChar = sread(0, line, BUFFERSIZE)))
+   {
       printf("Ecriture de la chaine dans le pipe\n");
-      nwrite(pipefd[1],line,nbChar);    // écriture sur pipe sans lecteur ==> SIGPIPE et write renvoie -1
+      nwrite(pipefd[1], line, nbChar); // écriture sur pipe sans lecteur ==> SIGPIPE et write renvoie -1
    }
-   
+
    sclose(pipefd[1]);
 }
 
 /*
     Standard exit codes:  https://tldp.org/LDP/abs/html/exitcodes.html
-    
+
     $ ./4.3
-    $ echo $?   
+    $ echo $?
     141
-    
+
     où 141 = 128 + n, erreur fatale due au signal n
     n=13 indique le signal SIGPIPE (cf. kill -l)
+*/
+
+/*
+Interruption d’un appel système par un signal:
+Reprenez la solution de l’exercice 3.A sur les pipes et modifiez-la de sorte
+que le fils ferme l’extrémité en lecture du pipe.
+
+L’exécution du programme s’arrêtera lorsque le père tentera d’écrire sur le pipe. Pourquoi ?
+
+Le code d’erreur de votre programme pourrait vous mettre sur la piste1.
+Pour l’obtenir, entrez la commande bash echo $? après avoir exécuté
+votre programme.
+
+Modifiez votre programme en armant un gestionnaire de signal afin que le père
+affiche un message explicatif avant de se terminer (si possible avec l’exit code correspondant au signal reçu).
 */
