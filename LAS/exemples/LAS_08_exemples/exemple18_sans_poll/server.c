@@ -12,7 +12,6 @@
 #define MESSAGE_SIZE 8192
 #define BACKLOG 5
 
-
 /* return sockfd */
 int initSocketServer(int port)
 {
@@ -28,6 +27,7 @@ int initSocketServer(int port)
 	return sockfd;
 }
 
+// retourne un monstre aléatoire
 static const char *random_monster()
 {
 	int random_number = rand() % 7 + 1;
