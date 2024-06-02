@@ -16,52 +16,52 @@
 #define VAL 7
 
 /**
- * Basic sample that shows the different steps to have a client connected 
- * to a server.
- * 
- * In this sample, syscalls are not checked to concentrate on the different steps
- * but you must check the syscalls for the exercices !
+ * Exemple basique qui montre les différentes étapes pour connecter un client
+ * à un serveur.
+ *
+ * Dans cet exemple, les appels système ne sont pas vérifiés pour se concentrer sur les différentes étapes
+ * mais vous devez vérifier les appels système pour les exercices !
  */
- 
-// Unsafe version as shown in videos
-int main_unsafe_version(int argc, char *arg[]) 
+
+// !Version non sécurisée comme montré dans les vidéos
+int main_unsafe_version(int argc, char *arg[])
 {
   struct sockaddr_in addr;
-  
-  // socket creation
+
+  // création du socket
   int sockfd = socket(AF_INET, SOCK_STREAM, 0);
-  
-  // prepare socket to connect
+
+  // préparation du socket pour la connexion
   memset(&addr, 0, sizeof(addr));
   addr.sin_family = AF_INET;
-  
-  // connect to server port
+
+  // connexion au port du serveur
   addr.sin_port = htons(SERVER_PORT);
-  
-  // connect to server address -> localhost
-  inet_aton(LOCAL_HOST,&addr.sin_addr);
-  connect(sockfd, (struct sockaddr *) &addr, sizeof(addr));
+
+  // connexion à l'adresse du serveur -> localhost
+  inet_aton(LOCAL_HOST, &addr.sin_addr);                   // inet_aton convertit une adresse IPv4 en une forme binaire
+  connect(sockfd, (struct sockaddr *)&addr, sizeof(addr)); // connexion au serveur
   int val = VAL;
-  printf("Client envoie la valeur %d au serveur\n",VAL);
-  write(sockfd,&val,sizeof(int));
-  close(sockfd);
+  printf("Le client envoie la valeur %d au serveur\n", VAL);
+  write(sockfd, &val, sizeof(int)); // envoie de la valeur au serveur
+  close(sockfd);                    // fermeture du socket
   return 0;
 }
 
-// Safe version with safe functions
-int main(int argc, char *arg[]) 
+// Version sécurisée avec des fonctions sécurisées
+int main(int argc, char *arg[])
 {
   // socket creation
   int sockfd = ssocket();
-  
+
   // prepare socket to connect
   sconnect(LOCAL_HOST, SERVER_PORT, sockfd);
-  
+
   // write message to server
   int val = VAL;
   printf("Client envoie la valeur 7 au serveur\n");
-  swrite(sockfd,&val,sizeof(int));
-  
+  swrite(sockfd, &val, sizeof(int));
+
   // close socket
   sclose(sockfd);
   return 0;
