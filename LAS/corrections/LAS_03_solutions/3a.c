@@ -4,10 +4,11 @@
 
 #define BUFFERSIZE 80
 
-void upper (char *str)
+void upper(char *str)
 {
    int i = 0;
-   while (str[i] != '\0') {
+   while (str[i] != '\0')
+   {
       str[i] = toupper(str[i]);
       i++;
    }
@@ -25,7 +26,8 @@ void run_child(void *argv)
    // Boucle de lecture sur le pipe, transformation en uppercase
    // et écriture à l'écran
    int nbChar;
-   while ((nbChar = sread(pipefd[0], line, BUFFERSIZE)) != 0) {
+   while ((nbChar = sread(pipefd[0], line, BUFFERSIZE)) != 0)
+   {
       upper(line);
       nwrite(1, line, nbChar);
    }
@@ -49,12 +51,22 @@ int main(int argc, char **argv)
    // Cloture du descripteur pour la lecture
    sclose(pipefd[0]);
 
-   // Boucle de lecture au clavier et écriture dans le pipe 
+   // Boucle de lecture au clavier et écriture dans le pipe
    int nbChar;
-   while ((nbChar = sread(0, line, BUFFERSIZE)) != 0) {
+   while ((nbChar = sread(0, line, BUFFERSIZE)) != 0)
+   {
       nwrite(pipefd[1], line, nbChar);
    }
 
    // Cloture du descripteur pour l'écriture
    sclose(pipefd[1]);
 }
+
+/*
+Écrivez un programme qui transforme les minuscules en majuscules.
+Le programme sera composé d’un processus père lisant à l’entrée standard
+(clavier) des lignes tant qu’il ne reçoit pas une fin de fichier (Ctrl-D).
+Les caractères lus seront transmis via un pipe à un processus fils.
+Le fils transformera les caractères en majuscules et les affichera
+sur la sortie standard (écran).
+*/
