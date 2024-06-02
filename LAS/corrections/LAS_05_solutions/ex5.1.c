@@ -16,22 +16,25 @@
 /* SIGNAL HANDLERS */
 /*******************/
 
-void sigalrmChildHandler (int num) {
+void sigalrmChildHandler(int num)
+{
   // send heartbeat to father
-  skill(getppid(), SIGUSR1);  
+  skill(getppid(), SIGUSR1);
   // reset countdown
   alarm(HEARTBEAT_TIME);
 }
 
-void sigalrmParentHandler (int num) {
-  const char* msg = "Erreur: Mon fils est down\n";
+void sigalrmParentHandler(int num)
+{
+  const char *msg = "Erreur: Mon fils est down\n";
   nwrite(2, msg, strlen(msg));
-  
+
   _exit(DOWN_CODE);
 }
 
-void sigusr1Handler (int sig) {
-  const char* msg = "Mon fils est toujours en vie\n";
+void sigusr1Handler(int sig)
+{
+  const char *msg = "Mon fils est toujours en vie\n";
   nwrite(1, msg, strlen(msg));
 
   // reset countdown
@@ -42,7 +45,8 @@ void sigusr1Handler (int sig) {
 /* MAIN FUNCTION */
 /*****************/
 
-int main () {
+int main()
+{
   /* blocage des signaux SIGUSR1, SIGALRM et SIGINT */
   sigset_t blocked;
   ssigemptyset(&blocked);
@@ -50,11 +54,12 @@ int main () {
   ssigaddset(&blocked, SIGALRM);
   ssigaddset(&blocked, SIGINT);
   ssigprocmask(SIG_BLOCK, &blocked, NULL);
-  
+
   pid_t childID = fork();
 
   // PERE
-  if (childID > 0) {
+  if (childID > 0)
+  {
     /* armement des signaux SIGUSR1 et SIGALRM */
     ssigaction(SIGUSR1, sigusr1Handler);
     ssigaction(SIGALRM, sigalrmParentHandler);
@@ -62,16 +67,18 @@ int main () {
     /* déblocage des signaux SIGUSR1 et SIGALRM, mais pas de SIGINT */
     ssigdelset(&blocked, SIGINT);
     ssigprocmask(SIG_UNBLOCK, &blocked, NULL);
-  
+
     /* lancement d'un compte à rebour de 12 secondes */
     alarm(ALERT_TIME);
 
-    while (true) {
+    while (true)
+    {
       sleep(10);
     }
   }
   // FILS
-  else {
+  else
+  {
     /* armement du signal SIGALRM */
     ssigaction(SIGALRM, sigalrmChildHandler);
 
@@ -80,10 +87,10 @@ int main () {
 
     /* lancement d'un compte à rebour de  secondes */
     alarm(HEARTBEAT_TIME);
-    
-    while (true) {   
+
+    while (true)
+    {
       sleep(10);
     }
   }
 }
-
