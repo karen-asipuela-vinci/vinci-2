@@ -6,6 +6,7 @@ public class Option {
 	private String name;
 	private int nbMaxEtudiant; 
 	private Set<Etudiant> etudiantsInscrits;
+
 	public Option(String name, int nbMaxEtudiant) {
 		super();
 		this.name = name;
