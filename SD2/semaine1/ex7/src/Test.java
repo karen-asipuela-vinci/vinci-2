@@ -6,7 +6,7 @@ public class Test {
 		v.add("piano");
 		Academie a = new Academie(v);
 		a.mettreEnAttente("piano", "Christophe");
-		a.mettreEnAttente("piano", "Jos�");
+		a.mettreEnAttente("piano", "Jose");
 		String s= a.attribuerPlace("piano");
 		System.out.println(s);
 		s= a.attribuerPlace("piano");
